@@ -1,0 +1,29 @@
+@charset "utf-8";
+/* CSS Reset */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+/* 弹框样式 */
+.outbg{position:absolute; top:0; left:0; right:0; bottom:0; z-index:10000;}
+.overlayCSS{background-color: #000; filter:alpha(opacity=40); -moz-opacity:0.4; -khtml-opacity: 0.4; opacity: 0.4; position:absolute; left:0; top:0; right:0; bottom:0; z-index:10000;}
+.b-wbox{width:390px; position:absolute; top:50%; left:50%; margin:-145px 0 0 -195px; border:1px solid #6b6b6b; box-shadow:0 0 7px rgba(0,0,0,0.4); font-size:12px; overflow:hidden; z-index:10001; background:#fff;}
+.b-wbox a{text-decoration:none;}
+.b-wbox .b-wtitle{height:38px; line-height:38px; background-color:#5088c9; background:linear-gradient(to bottom, #5088c9 0, #4277b6 100%); color: #fff; position:relative; border-bottom:1px solid #38679d; font-size:14px; font-weight:bold;}
+.b-wbox .b-wtitle .b-wtitle-txt{padding-left:12px;}
+.b-wbox .b-wtitle .b-wclose{position:absolute; right:10px; top:13px; width:14px; height:14px; background:url(../images/bg_123.png) 0 0 no-repeat; display:block; overflow:hidden; cursor:pointer; border:0; line-height:2000px;}
+.b-wbox .b-wtitle .b-wclose:hover{background-position:0 -24px;}
+.b-wbox .b-wcontent{ padding:10px;min-height:140px;}
+.b-wTable td{padding:5px 4px;}
+.b-wTable th{min-width:60px; text-align:right; padding-right:3px; font-weight:normal; color:#555;}
+.b-wbox input{min-width:188px;}
+.b-wbox input, .b-wbox textarea{padding:4px 5px; border:1px solid #d5d5d5;}
+
+
+.b-wbox .b-wfoot{height:44px; line-height:44px;background:#e8e8e8; background:linear-gradient(to bottom, #f4f4f4 0, #e8e8e8 100%); font-size:14px; padding:0px 12px;}
+.btn_s{padding:2px 13px; border:1px solid #fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset; font-size:12px; cursor:pointer; line-height:20px; }
+.sure{background:#457bbb; background:linear-gradient(to bottom, #5087c7 0, #457bbb 100%); color:#fff; border:1px solid #2e66a6;}
+.sure:hover{background:#4e86c8; background:linear-gradient(to bottom, #5e98db 0, #4e86c8 100%);}
+.remove{background:#e5e4e5; background:linear-gradient(to bottom, #f5f4f5 0, #e5e4e5 100%); color:#333; border:1px solid #ccc;}
+.remove:hover{background:#efefef; background:linear-gradient(to bottom, #f9f9f9 0, #efefef 100%);}

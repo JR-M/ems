@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<title>Highcharts_Rotation</title>
+<style type="text/css">
+body {
+	overflow: hidden;
+}
+
+.div-tab {
+	background: #d8d8d8;
+	height: 34px;
+	padding-left: 2%;
+}
+
+.div-tab span {
+	cursor: pointer;
+	display: block;
+	height: 24px;
+	width: 100px;
+	float: left;
+	text-align:center; 
+	color : white;
+	background: #5088c9;
+	margin-top:5px;
+	padding-top:5px;
+	-moz-border-radius: 10px 10px 0 0; /* Gecko browsers */
+	-webkit-border-radius: 10px 10px 0 0; /* Webkit browsers */
+	border-radius: 10px 10px 0 0; /* W3C syntax */
+	color: white;
+	font: bold 16px "宋体";
+}
+
+.div-tab span.cur{
+	 color: black;
+	 background: white;
+}
+
+
+.div {
+	float: left;
+	height: 350px;
+}
+</style>
+<script type="text/javascript" src="../js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="../js/highcharts.js"></script>
+<script type="text/javascript" src="../js/highcharts-3d.js"></script>
+<script type="text/javascript">
+	function setColumn(yTitle, yCategories, xCategories, data) {
+		c = $('#columnChart').highcharts();
+		c.yAxis[0].setTitle(yTitle, true);
+		c.yAxis[0].categories = yCategories;
+		c.xAxis[0].categories = xCategories;
+		c.series[0].setData(data);
+		c.redraw();
+	}
+
+	function setPie(data) {
+		$('#pieChart').highcharts().series[0].setData(data);
+	}
+
+	$(function() { 
+		
+		$(".div-tab > span").click(function(){
+			$("span.cur").removeClass("cur");
+			t = $(this).addClass("cur").index();
+			$(".div").hide().eq(t).show();
+		});
+		
+		// Set up the chart 
+		$('#columnChart').highcharts({
+			credits : {
+				enabled : false
+			},
+			chart : {
+				type : 'column',
+				margin : 50,
+				options3d : {
+					enabled : true,
+					alpha : 15,
+					beta : 15,
+					depth : 50,
+					viewDistance : 25
+				}
+			},
+			title : {
+				text : null
+			},
+			subtitle : {
+				text : null
+			},
+			legend : {
+				enabled : false
+			},
+			yAxis : {
+				title : {
+					text : '含量'
+				},
+				categories : [ 0, 50, 100, 150, 200 ]
+			},
+			xAxis : {
+				categories : [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+			},
+			series : [ {
+				name : ' ',
+				data : [ 29.9, 71.5, 106.4, 129.2, -144.0, 176.0, 135.6, -148.5, 216.4, 194.1, 95.6, 54.4 ],
+			} ]
+
+		});
+
+		$('#pieChart').highcharts({
+			credits : {
+				enabled : false
+			},
+			chart : {
+				type : 'pie',
+				margin : -2,
+				options3d : {
+					enabled : true,
+					alpha : 45,
+					beta : 0
+				}
+			},
+			title : {
+				text : null
+			},
+			tooltip : {
+				pointFormat : '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			plotOptions : {
+				pie : {
+					allowPointSelect : true,
+					cursor : 'pointer',
+					depth : 35,
+					dataLabels : {
+						enabled : true,
+						format : '{point.name}'
+					}
+				}
+			},
+			series : [ {
+				type : 'pie',
+				data : [ [ 'Firefox', 45.0 ], [ 'IE', 26.8 ], {
+					name : 'Chrome',
+					y : 12.8,
+					sliced : true,
+					selected : true
+				}, [ 'Safari', 8.5 ], [ 'Opera', 6.2 ], [ 'Others', 0.7 ] ]
+			} ]
+		});
+	});
+</script>
+</head>
+<body>
+	<div class="div-tab">
+		<span class="cur">时段分析</span><span>值段分析</span>
+	</div>
+	<div id="columnChart" class="div"></div>
+
+	<div id="pieChart" class="div" style="display: none;"></div>
+</body>
+</html>

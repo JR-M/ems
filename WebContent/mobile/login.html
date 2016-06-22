@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta HTTP-EQUIV="pragma" CONTENT="no-cache">
+<meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+<meta HTTP-EQUIV="expires" CONTENT="0">
+<link type="text/css" rel="stylesheet" href="css/base.css" />
+<title>环境监控</title>
+</head>
+<body>
+
+	<div class="login-div-bg">
+
+		<p>EMS</p>
+		<p>机房环境监测管理系统</p>
+		<p>
+			<img src="img/images/icon_3.png" /> <input placeholder="请输入用户名" />
+		</p>
+		<p>
+			<img src="img/images/icon_6.png" /> <input type="password" placeholder="请输入密码" />
+		</p>
+		<p id="debug-p">&nbsp;</p>
+		<p onClick="login();">登入</p>
+		<p>注册</p>
+		<p>忘记密码?</p>
+	</div>
+</body>
+<script type="text/javascript">
+	function $$(s) {
+		//	.innerHTML = navigator.userAgent;
+		return document.getElementById(s);
+	}
+
+	function login() {
+		o = document.getElementsByTagName("input");
+		if (o[0].value.length == 0 || o[1].value.length == 0) {
+			$$("debug-p").innerHTML = "输入不得为空!";
+		} else if (location.protocol == "file:")
+			location.href = "../mobile/untitled.html";
+		else {
+			getAjaxHttp("../machineRoom/userList?userName=" + o[0].value + "&password=" + o[1].value + "&t=" + new Date(), function(r) {
+				eval("var d=" + r);
+				if (d.list.length == 0 || d.list[0].password == "false")
+					$$("debug-p").innerHTML = "用户名或密码错误!";
+				else
+					location.href = "../mobile/menu.html";
+			});
+		}
+	}
+	function getAjaxHttp(s, f) {
+		var xl;
+		try {
+			xl = new XMLHttpRequest();
+		} catch (e) {
+			xl = new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		xl.onreadystatechange = function() {
+			if (4 == xl.readyState)
+				if (200 == xl.status) {
+					f(xl.responseText);
+				}
+		}
+		xl.open("get", s, true);
+		xl.send("");
+	}
+</script>
+</html>

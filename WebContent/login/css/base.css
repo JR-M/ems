@@ -1,0 +1,122 @@
+@charset "utf-8";
+/* CSS Reset */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: "微软雅黑", "宋体";
+}
+
+img, fieldset {
+	border: 0;
+}
+
+ul, ol {
+	list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: normal;
+}
+
+img, input {
+	vertical-align: middle;
+}
+
+.ofh {
+	overflow: hidden;
+}
+
+.fl {
+	float: left;
+}
+
+.fr {
+	float: right;
+}
+
+.cb {
+	clear: both;
+}
+
+.tr {
+	text-align: right;
+}
+
+.mt5 {
+	margin-top: 5px;
+}
+
+.mt10 {
+	margin-top: 10px;
+}
+
+.mt15 {
+	margin-top: 15px;
+}
+
+.mt20 {
+	margin-top: 20px;
+}
+
+.mt30 {
+	margin-top: 30px;
+}
+
+.mt50 {
+	margin-top: 50px;
+}
+
+.mr5 {
+	margin-right: 5px;
+}
+
+.mr10 {
+	margin-right: 10px;
+}
+
+.mr15 {
+	margin-right: 15px;
+}
+
+.mr20 {
+	margin-right: 20px;
+}
+
+.mr30 {
+	margin-right: 30px;
+}
+
+.mr50 {
+	margin-right: 50px;
+}
+
+.ml5 {
+	margin-left: 5px;
+}
+
+.ml10 {
+	margin-left: 10px;
+}
+
+.ml15 {
+	margin-left: 15px;
+}
+
+.ml20 {
+	margin-left: 20px;
+}
+
+.ml30 {
+	margin-left: 30px;
+}
+
+.ml50 {
+	margin-left: 50px;
+}
+
+.mainBg {
+	background: url(../images/bg.jpg) repeat;
+}

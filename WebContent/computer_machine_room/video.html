@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>视频</title>
+<link type="text/css" rel="stylesheet" href="../login/css/zTreeStyle/zTreeStyle.css" />
+<link type="text/css" rel="stylesheet" href="css/jquery-ui.css" />
+<script type="text/javascript" src="camera/cn/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="../login/js/jquery.ztree.all-3.5.js"></script>
+<script type="text/javascript" src="camera/codebase/webVideoCtrl.js"></script>
+<style type="text/css">
+.div-middle-view>div {
+	text-align: center;
+	float: left;
+}
+
+#div-WebVideoCtrl-view {
+	width: 600px;
+	height: 400px;
+}
+
+.div-date {
+	font: normal normal normal 50% sans-serif;
+}
+
+.div-view-tree-video>div:first-child {
+	text-align: right;
+	font: normal normal normal 60% sans-serif;
+}
+
+.div-view-tree-video>div:first-child input {
+	font: normal normal normal 90% sans-serif;
+}
+
+.gridtable {
+	width: 300px;
+	border-spacing: 1px;
+	margin-left: 5px;
+}
+
+.gridtable th {
+	height: 30px;
+	font: normal bold 15px sans-serif;
+	text-align: center;
+	background-image: url(img/bg_gerdient.jpg);
+	background-size: contain;
+}
+
+.gridtable td {
+	font: normal normal 12px sans-serif;
+	background: #dbdbdb;
+}
+
+.gridtable>tbody>tr:HOVER {
+	background: #3eafe0;
+	color: white;
+	cursor: pointer;
+}
+
+.gridtable>tbody>tr.cur {
+	background: #3eafe0;
+	color: white;
+}
+
+.left {
+	width: 175px;
+}
+
+.right {
+	height: 500px;
+	width: 320px;
+	overflow: auto;
+}
+
+.list {
+	margin: 0 5px;
+	background: #dbdbdb;
+}
+
+.list>div:first-child {
+	padding: 4px;
+	background: url(img/bg_gerdient.jpg);
+	background-size: contain;
+	text-align: left;
+}
+
+.list>div:first-child img {
+	margin: 10px;
+	vertical-align: middle;
+	float: right;
+}
+
+.list>div {
+	padding: 5px;
+}
+
+.div-middle-view .head {
+	text-align: left;
+	height: 40px;
+	padding-left: 20px;
+	background: url(img/bg_gerdient.jpg);
+	background-size: contain;
+}
+
+.div-middle-view .toolbar {
+	background: #dbdbdb;
+	height: 80px;
+	margin-top: 5px;
+}
+
+.toolbar div {
+	width: 30px;
+	height: 30px;
+	border: 2px solid #898989;
+	margin: 5px;
+	display: inline-block;
+	float: left;
+}
+
+.toolbar .d2 {
+	background: -moz-linear-gradient(top, transparent 90%, #898989 99%), -moz-linear-gradient(left, transparent 90%, #898989 99%);
+	background-size: 51% 51%;
+}
+
+.toolbar .d3 {
+	background: -moz-linear-gradient(top, transparent 90%, #898989 99%), -moz-linear-gradient(left, transparent 90%, #898989 99%);
+	background-size: 34% 34%;
+}
+
+.toolbar .d4 {
+	background: -moz-linear-gradient(top, transparent 90%, #898989 99%), -moz-linear-gradient(left, transparent 90%, #898989 99%);
+	background-size: 25% 35%;
+}
+
+.toolbar div:hover {
+	background-color: #fff;
+}
+
+.toolbar div.cur {
+	background-color: #fff;
+}
+
+.toolbar button {
+	width: 150px;
+	height: 40px;
+	border-radius: 20px;
+	margin: 20px 50px;
+	float: left;
+	"
+}
+
+.path:hover {
+	cursor: pointer;
+	color: #fff;
+}
+</style>
+<script type="text/javascript">
+	nvrs = [ {
+		name : "视频设备",
+		ip : "192.168.1.89",
+		port : "80",
+		username : "admin",
+		password : "a1234567",
+		open : true,
+		children : []
+	}, {
+		name : "视频设备",
+		ip : "192.168.1.89",
+		port : "80",
+		username : "admin",
+		password : "a1234567",
+		open : true,
+		children : []
+	} ];
+
+	//选中节点	
+	var currentNode;
+	//当前时间
+	currentDate = new Date();
+	//当前记录
+	var currentRecord = "";
+
+	function getVideoList(p) {
+		if (!currentNode)
+			return false;
+		et = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+		szEndTime = $.datepicker.formatDate("yy-mm-dd 23:59:59", et);
+		szStartTime = szEndTime.replace(/[^\-]+$/g, "01 00:00:00");
+		if (!p) {
+			currentRecord = "";
+			$("table.table-view-recode > tbody").html("")
+			p = 0;
+		}
+		//	console.info("页数为: " + p + "时间为 : st:" + szStartTime + " ---- et:" + szEndTime + " ip:" + currentNode.ip + " id:" + currentNode.id);
+		WebVideoCtrl.I_RecordSearch(currentNode.ip, currentNode.id, szStartTime, szEndTime, {
+			iSearchPos : p * 40,
+			success : function(xmlDoc) {
+				f = xmlDoc.getElementsByTagName("responseStatusStrg")[0].innerHTML;
+				if (f == "MORE") {
+					currentRecord += xmlDoc.getElementsByTagName("matchList")[0].innerHTML;
+					getVideoList(++p);
+				} else if (f == "OK") {
+					//	c = xmlDoc.getElementsByTagName("matchList")[0].innerHTML;
+					currentRecord += xmlDoc.getElementsByTagName("matchList")[0].innerHTML;
+					currentRecord = currentRecord.replace(/searchMatchItem/g, "TR").replace(/(trackID)|(startTime)|(endTime)/g, "TD");
+					currentRecord = currentRecord.replace(/(\d{4}\-\d{2}\-\d{2})T(\d{2}\:\d{2}\:\d{2})Z/gi, "$1 $2").replace(/playbackURI/g, "TD style='display:none;'");
+					ts = "<TR ondblclick='setMessage(WebVideoCtrl.I_StartDownloadRecord( \"" + currentNode.ip;
+					ts += "\",this.lastChild.innerHTML,this.childNodes[1].innerHTML.replace(/\\s|\\:|\\-/g,\"\") ),\"下载\"); ' >";
+					currentRecord = currentRecord.replace(/<TR>/g, ts);
+					//WebVideoCtrl.I_StartDownloadRecord()
+					$(".div-date").datepicker("refresh");
+					$("table.table-view-recode > tbody:last").html(currentRecord).find("tr").click(function() {
+						var tr = this;
+						s = $("td:eq(1)", tr).text(), e = $("td:eq(2)", tr).text();
+						if (!$(this).hasClass("cur")) {
+							WebVideoCtrl.I_Stop();
+							WebVideoCtrl.I_StartPlayback(currentNode.ip, {
+								iChannelID : currentNode.id,
+								szStartTime : s,
+								szEndTime : e
+							})
+							$("tr", tr.parentNode).removeClass("cur");
+							var t = $(tr).addClass("cur").next();
+
+							s = new Date(s.replace(/(\d{4})\-(\d{2})\-(\d{2})/gi, "$2 $3,$1 ")).getTime();
+							c = new Date(e.replace(/(\d{4})\-(\d{2})\-(\d{2})/gi, "$2 $3,$1 ")).getTime() - s;
+							if (t.is(":visible")) {
+								setTimeout(function() {
+									t.click();
+								}, c);
+							}
+
+						} else {
+							WebVideoCtrl.I_Pause()
+							$(this).removeClass("cur");
+						}
+					}).hide();
+				}
+			},
+			error : function() {
+				console.info(" 搜索录像文件失败！");
+			}
+		});
+	}
+
+	$(document).ready(function() {
+		if (-1 == WebVideoCtrl.I_CheckPluginInstall()) {
+			if (confirm("您还未安装过插件，是否下载插件进行安装！")) {
+				location.href = "camera/codebase/WebComponents.exe";
+			}
+			return false;
+		} else
+			WebVideoCtrl.I_InsertOBJECTPlugin("div-WebVideoCtrl-view");
+		(function(tt) {
+			//设置树状菜单
+			zt = $.fn.zTree.init($(".ztree:first"), {
+				callback : {
+					onClick : function(e, id, node) {
+						WebVideoCtrl.I_Stop();
+						if (!node.isParent) {
+							currentNode = node;
+							WebVideoCtrl.I_StartRealPlay(node.ip, {
+								iChannelID : node.id
+							});
+							getVideoList();
+						} else
+							delete currentNode;
+					}
+				}
+			}, {
+				name : "NVRS"
+			});
+
+			$.each(tt, function(i, t) {
+				WebVideoCtrl.I_Login(t.ip, 1, t.port, t.username, t.password, {
+					success : function() {
+						t["nvr"] = "NVR" + Math.floor(Math.random() * 10000);
+						zt.addNodes(zt.getNodesByParam("name", "NVRS", null)[0], t, true);
+						WebVideoCtrl.I_GetDigitalChannelInfo(t.ip, {
+							success : function(x) {
+								$("InputProxyChannelStatus > :has(> online:contains(true))", x).prev().each(function(i, o) {
+									t.id = $(o).html();
+									t.name = "摄像头" + $(o).html();
+									t.icon = "img/vedio1.jpg";
+									zt.addNodes(zt.getNodesByParam("nvr", t["nvr"], null)[0], t, true);
+								});
+								zt.expandAll(true);
+							}
+						});
+					}
+				});
+			});
+		}(nvrs));
+
+		$(".div-date").datepicker({
+			monthNames : [ "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月" ],
+			dayNamesMin : [ "日", "一", "二", "三", "四", "五", "六" ],
+			dateFormat : "yy-mm-dd",
+			showButtonPanel : false,
+			onChangeMonthYear : function(y, m, i) {
+				currentDate = new Date(y, m, 0);
+				getVideoList();
+			},
+			onSelect : function(text, inst) {
+				$("table.table-view-recode > tbody:last").find("tr").hide().end().find("tr:has(td:contains(" + text + "))").show().each(function(i, o) {
+					$("td:first", o).text(i / 1 + 1);
+				});
+			},
+			beforeShowDay : function(date) {
+				return [ !!currentRecord.match($.datepicker.formatDate("yy-mm-dd", date)) ];
+			}
+		});
+		setMessage();
+
+		$(".list>div:even").click(function() {
+			$(this).next().slideToggle("normal", function() {
+				if ($(this).is(":hidden")) {
+					$(this).prev().find("img").attr("src", "img/triangle1.jpg");
+				} else {
+					$(this).prev().find("img").attr("src", "img/triangle2.jpg");
+				}
+			});
+		});
+
+		$(".toolbar div").click(function() {
+			WebVideoCtrl.I_ChangeWndNum($(this).siblings().removeClass("cur").end().addClass("cur").index() / 1 + 1);
+		});
+
+	});
+
+	function setMessage(n, o) {
+		s = WebVideoCtrl.I_GetLocalCfg().getElementsByTagName("LocalConfigInfo")[0].innerHTML;
+		if (typeof n != "undefined") {
+			$(".path a").fadeOut(500, function() {
+				if (o == "设置保存路径") {
+					msg = WebVideoCtrl.I_SetLocalCfg("<LocalConfigInfo>" + s.replace(/<(\w*)Path>[^<|^>]*<\/(\w*)Path>/gm, "<$1Path>" + n + "\</$2Path>") + "</LocalConfigInfo>");
+					if (msg == 0) {
+						$(this).text("设置成功").fadeIn(500, function() {
+							$(this).fadeOut(1000, function() {
+								$(this).text("保存路径为>>> " + $("RecordPath", WebVideoCtrl.I_GetLocalCfg()).text()).fadeIn(3000, function() {
+									$(this).fadeOut(1000, function() {
+										$(this).text("设置保存路径").fadeIn(1000);
+									});
+								});
+							});
+						});
+					}
+				} else if (o == "抓图") {
+					$(this).text("抓图成功").fadeIn(500, function() {
+						$(this).fadeOut(1000, function() {
+							$(this).text("设置保存路径").fadeIn(1000);
+						});
+					});
+				} else if (o == "下载") {
+					$(this).text("下载成功").fadeIn(500, function() {
+						$(this).fadeOut(1000, function() {
+							$(this).text("设置保存路径").fadeIn(1000);
+						});
+					});
+				}
+			});
+		}
+	}
+</script>
+
+</head>
+<body>
+	<div class="div-middle-view">
+		<div class="left">
+			<div class="list">
+				<div>
+					日期<img src="img/triangle2.jpg">
+				</div>
+
+				<div class="div-date"></div>
+
+			</div>
+			<div class="list">
+				<div>
+					摄像头<img src="img/triangle2.jpg">
+				</div>
+
+				<div class="div-view-tree-video">
+					<div style="display: none;">
+						名称:<input name="name" value="硬盘录像机" /><br /> IP地址:<input name="ip" value="192.168.1.89" /><br /> 端口地址:<input name="port" value="80" /><br /> 用户名:<input name="username" value="admin" /><br />
+						密码:<input type="password" name="password" value="a1234567" />
+					</div>
+					<ul class="ztree"></ul>
+				</div>
+
+			</div>
+			<div class="list">
+				<div>
+					查询结果<img src="img/triangle2.jpg">
+				</div>
+				<div style="padding: 0;"></div>
+			</div>
+			<div class="list">
+				<div>
+					设置<img src="img/triangle2.jpg">
+				</div>
+				<div class="path">
+					<a onclick="setMessage(WebVideoCtrl.I_OpenFileDlg(0),this.innerHTML);">设置保存路径</a>
+				</div>
+			</div>
+			<div class="show" style="display: none;"></div>
+		</div>
+		<div class="play">
+			<div class="head">
+				<img src="img/vedio2.jpg"><a>视频播放</a>
+			</div>
+			<div id="div-WebVideoCtrl-view"></div>
+			<div class="toolbar">
+				<div class="d1"></div>
+				<div class="d2"></div>
+				<div class="d3"></div>
+				<div class="d4"></div>
+
+				<button onclick="setMessage(WebVideoCtrl.I_CapturePic('P'+new Date().getTime()),this.innerHTML);">抓图</button>
+			</div>
+		</div>
+		<div class="right">
+			<table class="table-view-recode gridtable">
+				<thead>
+					<tr>
+						<th>序号</th>
+						<th>开始时间</th>
+						<th>结束时间</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ondblclick="">
+						<td>1</td>
+						<td>2016-05-19 11:00:41</td>
+						<td>2016-05-19 11:00:57</td>
+					</tr>
+					<tr>
+						<td>2</td>
+						<td>2016-05-19 10:59:11</td>
+						<td>2016-05-19 10:59:45</td>
+					</tr>
+					<tr>
+						<td>3</td>
+						<td>2016-05-19 11:01:00</td>
+						<td>2016-05-19 11:01:14</td>
+					</tr>
+					<tr>
+						<td>4</td>
+						<td>2016-05-19 11:01:41</td>
+						<td>2016-05-19 11:01:57</td>
+					</tr>
+					<tr>
+						<td>5</td>
+						<td>2016-05-19 11:02:27</td>
+						<td>2016-05-19 11:03:01</td>
+					</tr>
+					<tr>
+						<td>6</td>
+						<td>2016-05-19 11:03:34</td>
+						<td>2016-05-19 11:03:50</td>
+					</tr>
+					<tr>
+						<td>7</td>
+						<td>2016-05-19 11:04:50</td>
+						<td>2016-05-19 11:05:06</td>
+					</tr>
+					<tr>
+						<td>8</td>
+						<td>2016-05-19 11:07:48</td>
+						<td>2016-05-19 11:08:04</td>
+					</tr>
+					<tr>
+						<td>9</td>
+						<td>2016-05-19 11:10:32</td>
+						<td>2016-05-19 11:10:48</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+</html>

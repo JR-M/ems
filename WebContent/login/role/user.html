@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>用户列表</title>
+<link rel="stylesheet" href="../css/box.css" type="text/css" />
+<link rel="stylesheet" href="../../computer_machine_room/css/page.css" type="text/css" />
+<script type="text/javascript" src="../../computer_machine_room/js/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+	power = {};
+
+	function initTable() {
+		params = "";
+		params += $(".control-pannel :text").serialize();
+		//	params += "&" + $(".p-search :text").serialize();
+
+		$.getJSON("../../machineRoom/userList", params, function(data) {
+			$(".gridtable > tbody > *").remove();
+			$(data.list).each(function(i, e) {
+				t = "<tr>";
+				t += "<td style='display:none' name='id'>" + e.id + "</td>";
+				t += "<td>" + ((data.pager.pageNumber - 1) * data.pager.pageSize + i + 1) + "</td>";
+				t += "<td name='userName'>" + e.userName + "</td>";
+				t += "<td style='display:none' name='password'>" + e.password + "</td>";
+				t += "<td name='status'>" + (!e.status?"":e.status) + "</td>";
+				t += "<td name='power'>" + (!e.power?"":e.power) + "</td>";
+				t += "<td name='card'>"+ (!e.card?"":e.card) +"</td>";
+				t += "<td name='phone'>"+ (!e.phone?"":e.phone) +"</td>"
+				t += "<td name='remark'>" + (!e.remark?"":e.remark) + "</td>";
+				t += "</tr>";
+				$(".gridtable > tbody").append(t);
+			});
+
+			$(".gridtable > tbody > tr").dblclick(function(o) {
+				$(".control-pannel > .fl > .controlBtn").click();
+				$("[name]", this).each(function(i, o) {
+					t = $(".outbg [name=" + $(o).attr("name") + "]");
+					if (t.is(":radio")) {
+						t.each(function(a, b) {
+							b.checked = (b.value == o.innerHTML) ? true : false;
+						});
+					} else
+						t.val(o.innerHTML);
+				});
+				$("span.span-userName").text($(".outbg [name=userName]").val());
+			});
+
+			$(".control-pannel [name=n]").val(data.pager.pageNumber);
+			$(".control-pannel [name=c]").val(data.pager.pageCount);
+		});
+	}
+
+	//编辑
+	function editUser(tempLi) {
+		$.get("../../machineRoom/editUser", $("input,textarea", tempLi).serialize(), function(d) {
+			initTable();
+			$(".b-wclose").click();
+		});
+	}
+
+	$(document).ready(function() {
+		initTable();
+		$.getJSON("../../machineRoom/powerList", {
+			s : 100,
+			n : 1
+		}, function(data) {
+			t = "";
+			$.each(data.list, function(i, o) {
+				t += '<input type="radio" name="power" value="' + o.name + '" style="min-width: 10px;" />';
+				t += o.name + "<br/>";
+			});
+			$("table.b-wTable th:contains('权限')").next().html(t);
+		});
+	});
+</script>
+</head>
+<body>
+
+
+	<table class="gridtable" border="0" cellpadding="0" cellspacing="1">
+		<thead>
+			<tr>
+				<td>序号</td>
+				<td>用户名</td>
+				<td>状态</td>
+				<td>权限</td>
+				<td>卡号</td>
+				<td>电话</td>
+				<td>备注</td>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+
+	<!-- 弹框开始 -->
+	<div class="outbg" style="display: none;">
+		<div class="overlayCSS"></div>
+		<div class="b-wbox">
+			<div class="b-wtitle">
+				<div class="b-wtitle-txt">
+					<span>增加</span> <a href="javascript:void(0);" class="b-wclose" onclick="$('.outbg').hide();">X</a>
+				</div>
+			</div>
+			<div class="b-wcontent">
+				<table cellpadding="0" cellspacing="0" border="0" width="100%" class="b-wTable">
+					<tr style="display: none;">
+						<td><input name="id" /></td>
+					</tr>
+					<tr>
+						<th>用户名：</th>
+						<td><input style="display: none;" name="userName" /><span class="span-userName">测试用户</span></td>
+					</tr>
+					<tr style="display: none;">
+						<th>密码：</th>
+						<td><input name="password" type="password" /></td>
+					<tr>
+					</tr>
+					<tr>
+						<th>状态：</th>
+						<td><input type="radio" name="status" value="已激活" style="min-width: 10px;" checked="checked" />已激活<br /> 
+							<input type="radio" name="status" value="未激活" style="min-width: 10px;" />未激活<br />
+							<input type="radio" name="status" value="屏蔽" style="min-width: 10px;" />屏蔽<br />
+						</td>
+					</tr>
+					<tr>
+						<th>权限：</th>
+						<td>
+							<input type="radio" name="power" value="" style="min-width: 10px;" checked="checked" />管理员<br /> 
+							<input type="radio" name="power" value="" style="min-width: 10px;" />值班员<br />
+						</td>
+					</tr>
+					<tr>
+						<th>卡号：</th>
+						<td>
+							<input name="card"  /> 
+						</td>
+					</tr>
+					<tr>
+						<th>电话：</th>
+						<td>
+							<input name="phone"  /> 
+						</td>
+					</tr>
+					<tr>
+						<th valign="top">备注：</th>
+						<td><textarea name="remark"></textarea></td>
+					</tr>
+				</table>
+			</div>
+			<div class="b-wfoot">
+				<div class="fr">
+					<button class="btn_s sure mr10" onclick="editUser(this.parentNode.parentNode.parentNode);">保存</button>
+					<button class="btn_s remove" onclick="$('.outbg .b-wclose').click();">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+	<div class="control-pannel">
+		<div class="fl" style="display: bnone;">
+			<button class="controlBtn" onclick="$('.outbg').show().find(':text,:password,textarea').val('');">
+				<i class="icon-add"></i>增加
+			</button>
+		</div>
+
+		<div class="fr">
+			第 <input name="n" value="1" size="3" readonly="readonly" class="sameBgIpt"> 页
+			<button class="controlBtn" onClick="$('[name=n]',this.parentNode).val(1);initTable();">首页</button>
+			<button class="controlBtn" onclick="tpn=$('[name=n]',this.parentNode);if(tpn.val()>1){tpn.val(tpn.val()-1);initTable();}">上一页</button>
+			<button class="controlBtn" onclick="tpn=$('[name=n]',this.parentNode);count=$('[name=c]',this.parentNode);if(tpn.val()<count.val()){tpn.val(tpn.val()*1+1);initTable();}">下一页</button>
+			<button class="controlBtn" onclick="$('[name=n]',this.parentNode).val($('[name=c]',this.parentNode).val());initTable();">尾页</button>
+			<input name="s" value="10" style="display: none;"> 共 <input name="c" value="1" size="3" readonly="readonly" class="sameBgIpt"> 页
+		</div>
+	</div>
+
+
+</body>
+</html>

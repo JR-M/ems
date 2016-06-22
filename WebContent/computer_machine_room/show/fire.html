@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<title>火警数据展示</title>
+<script type="text/javascript" src="../js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="../js/highcharts.js"></script>
+<script type="text/javascript" src="../js/exporting.js"></script>
+<script type="text/javascript">
+	var d;
+	$(document).ready(function() {
+		function getData() {
+			$.getJSON("../data/d.js", function(data) {
+				//console.log(JSON.stringify(data));
+				$(data).each(function(i, o) {
+					//console.log(o.p);
+					d = o.f * 1
+				});
+			});
+			return d;
+		}
+		getData();
+		Highcharts.setOptions({
+			global : {
+				useUTC : false
+			}
+		});
+		$('#container').highcharts({
+			chart : {
+				type : 'spline',
+				animation : Highcharts.svg, // don't animate in old IE
+				marginRight : 10,
+				events : {
+					load : function() {
+
+						// set up the updating of the chart each second
+						var series = this.series[0];
+						setInterval(function() {
+							var x = (new Date()).getTime(), // current time
+							y = getData();
+							series.addPoint([ x, y ], true, true);
+						}, 1000);
+					}
+				}
+			},
+			title : {
+				text : '烟感状态'
+			},
+			xAxis : {
+				type : 'datetime',
+				tickPixelInterval : 50,
+				title : {
+					text : '时间'
+				}
+			},
+			credits : {
+				enabled : false
+			},
+			yAxis : {
+				title : {
+					text : '状态码(0:正常,1:异常)'
+				},
+				min : 0,
+				max : 1,
+				startOnTick : true,
+				max : 1,
+				plotLines : [ {
+					value : 0,
+					width : 1,
+					color : '#808080'
+				} ]
+			},
+			tooltip : {
+				formatter : function() {
+					if (this.y == 0) {
+						status = "正常";
+					} else {
+						status = "异常";
+					}
+					return '<b>' + this.series.name + '</b>' + status;
+				}
+			},
+			legend : {
+				enabled : false
+			},
+			exporting : {
+				enabled : false
+			},
+			series : [ {
+				name : '状态:',
+				data : (function() {
+					// generate an array of random data
+					var data = [], time = (new Date()).getTime(), i;
+
+					for (i = -19; i <= 0; i += 1) {
+						data.push({
+							x : time + i * 1000,
+							y : 0
+						});
+					}
+					return data;
+				}())
+			} ]
+		});
+	});
+</script>
+</head>
+<body>
+	<div id="container"
+		style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>预览</title>
+<link type="text/css" rel="stylesheet"
+	href="css/zTreeStyle/zTreeStyle.css" />
+<style type="text/css">
+.left {
+	width: 24%;
+	float: left;
+	height: 600px;
+	border: thin solid #ccc;
+}
+
+.center {
+	width: 54%;
+	float: left;
+	height: 600px;
+	border: thin solid #ccc;
+}
+
+.right {
+	width: 20%;
+	float: left;
+	height: 600px;
+	border: thin solid #ccc;
+}
+
+.center .toolbar {
+	margin-top: 10px;
+	padding: 10px 20px;
+	background-color: #888;
+}
+</style>
+
+<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery.ztree.all-3.5.js"></script>
+<script type="text/javascript" src="vedio/codebase/webVideoCtrl.js"></script>
+<script type="text/javascript" src="vedio/cn/demo.js"></script>
+<script type="text/javascript">
+	theMenu = {
+		"name" : "通道",
+		"icon" : "img/DVR.png",
+		"children" : [ {
+			"name" : "大厅摄像头",
+			"icon" : "img/main_stream.png",
+			"ip" : "192.168.1.89",
+			"port" : "80",
+			"username" : "admin",
+			"password" : "a1234567"
+		}, {
+			"name" : "南大门",
+			"icon" : "img/main_stream.png",
+			"ip" : "192.168.1.89",
+			"port" : "80",
+			"username" : "admin",
+			"password" : "a1234567"
+		}, {
+			"name" : "北大门",
+			"icon" : "img/main_stream.png",
+			"ip" : "192.168.1.89",
+			"port" : "80",
+			"username" : "admin",
+			"password" : "a1234567"
+		}, {
+			"name" : "二楼",
+			"icon" : "img/main_stream.png",
+			"ip" : "192.168.1.89",
+			"port" : "80",
+			"username" : "admin",
+			"password" : "a1234567"
+		} ]
+	};
+	$(document).ready(
+			function() { //设置树状菜单
+				var setting = {
+
+					data : {
+						key : {
+							name : "name"
+						}
+					},
+					callback : {
+						onClick : function(event, id, node) {
+							if (!node.isParent) {
+								start(node.ip, node.port, node.username, node.password);
+							}
+						},
+
+					}
+				};
+				$.fn.zTree.init($("#treeDemo"), setting, theMenu);
+				var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+				treeObj.expandAll(true);
+
+			});
+
+	function start(ip, port, username, password) {
+		
+		var iRet = WebVideoCtrl.I_Login(ip, 1, port, username, password, {
+			success : function(xmlDoc) {
+				WebVideoCtrl.I_StartRealPlay(ip);
+			}
+		});
+
+		if(iRet==-1) {
+			WebVideoCtrl.I_StartRealPlay(ip);
+		}
+	}
+	
+	function capture() {
+		d = new Date(),
+		WebVideoCtrl.I_CapturePic(""+d.getTime());
+		
+		var xmlDoc = WebVideoCtrl.I_GetLocalCfg();
+		
+		year = d.getFullYear();
+		month = d.getMonth() + 1;
+		day = d.getDate();
+		time = year + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
+		path = $(xmlDoc).find("CapturePath").eq(0).text() + "/" + time + "/" + d.getTime() + ".jpg";
+		$(".left .show").html("");
+		$(".left .show").append("<img src='file:///" + path + "' width='350px' />");
+	}
+	
+	function stop() {
+		var oWndInfo = WebVideoCtrl.I_GetWindowStatus(g_iWndIndex);
+		if(oWndInfo != null) {
+			WebVideoCtrl.I_Stop();
+		}
+	}
+</script>
+
+</head>
+
+<body>
+
+	<div class="left">
+		<div class="div-view-tree">
+			<ul id="treeDemo" class="ztree"></ul>
+		</div>
+		<div class="show"></div>
+	</div>
+	<div class="center">
+		<div id="divPlugin" style="width: 720px; height: 500px;"></div>
+		<div class="toolbar">
+			<select onchange="changeWndNum(this.value);">
+				<option value="1" selected>1x1</option>
+				<option value="2">2x2</option>
+				<option value="3">3x3</option>
+				<option value="4">4x4</option>
+			</select>
+			<button onclick="stop();">关闭</button>
+			<button onclick="capture();">抓图</button>
+		</div>
+	</div>
+	<div class="right"></div>
+</body>
+
+</html>

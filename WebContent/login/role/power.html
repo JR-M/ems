@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>权限列表</title>
+<!-- <link rel="stylesheet" href="../css/box.css" type="text/css" /> -->
+<link rel="stylesheet" href="../../computer_machine_room/css/page.css" type="text/css" />
+<link type="text/css" rel="stylesheet" href="../css/zTreeStyle/zTreeStyle.css">
+<script type="text/javascript" src="../../computer_machine_room/data/system.js"></script>
+<script type="text/javascript" src="../js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="../js/jquery.ztree.all-3.5.js"></script>
+<script type="text/javascript">
+	function initTable() {
+		params = "";
+		params += $(".control-pannel :text").serialize();
+		//	params += "&" + $(".p-search :text").serialize();
+
+		$.getJSON("../../machineRoom/powerList", params, function(data) {
+			
+			$(".gridtable > tbody > *").remove();
+			$(data.list).each(function(i, e) {
+				t = "<tr>";
+				t += "<td style='display:none' name='id'>" + e.id + "</td>";
+				t += "<td>" + ((data.pager.pageNumber - 1) * data.pager.pageSize + i + 1) + "</td>";
+				t += "<td name='name'>" + e.name + "</td>";
+				t += "<td style='display:none' name='contents'>" + encodeURIComponent(e.contents) + "</td>";
+				t += "<td name='remark'>" + e.remark + "</td>";
+				t += "</tr>";
+				$(".gridtable > tbody").append(t);
+			});
+
+			$(".gridtable > tbody > tr").mouseover(function() {
+				if ($(".gridtable > tbody :text").size() == 0) {
+					
+					$(".gridtable > tbody > tr").removeClass("cur");
+					$(this).addClass("cur");
+					
+					zTreeObj = $.fn.zTree.getZTreeObj("treeDemo");
+					zTreeObj.checkAllNodes(false);
+					
+					var contents = [];
+					$("td", this).each(function(i, o) {
+						if ($(this).attr("name") == "contents" && o.innerHTML.length > 0) {
+							
+							console.info(decodeURIComponent($(o).html()))
+							
+							eval("contents = " + decodeURIComponent($(o).html()));
+							$.each(zTreeObj.getNodesByFilter(function(o) {
+								flag = false;
+								if (!o.isParent) {
+									$.each(contents, function(index, tr) {
+										if (tr.name == o.name && tr.links == o.links) {
+											flag = true;
+										}
+									});
+								}
+								return flag;
+							}), function(i, o) {
+								zTreeObj.checkNode(o, true, true);
+							});
+						}
+					});
+				}
+			}).dblclick(function() {
+				if ($(".gridtable > tbody :text").size() == 0) {
+					t = "";
+					$("td", this).each(function(i, o) {
+						v = $(this).is(":visible") ? "" : "none";
+						if (!!(n = $(this).attr("name"))) {
+							t += "<td style='display:"+v+";'><input name="+n+" value="+o.innerHTML+" /></td>";
+						} else {
+							t += "<td style='display:"+v+";'><button class='controlBtn' onclick='editPower(this.parentNode.parentNode)'>存</button></td>";
+						}
+					});
+					this.innerHTML = t;
+					$("[name=name]",this).hide().after($("<span/>").text($("[name=name]",this).val()));
+				}
+			});
+
+			$(".control-pannel [name=n]").val(data.pager.pageNumber);
+			$(".control-pannel [name=c]").val(data.pager.pageCount);
+		});
+	}
+
+	function addPower() {
+		if ($(".gridtable > tbody :text").size() == 0) {
+			t = "<tr>";
+			t += "<td><button class='controlBtn' onclick='editPower(this.parentNode.parentNode)'>存</button></td>";
+			t += "<td style='display:none;'><input name='id' /></td>";
+			t += "<td><input name='name' /></td>";
+			t += "<td style='display:none;'><input name='contents' /></td>";
+			t += "<td><input name='remark' /></td>";
+			t += "</tr>";
+			$(".gridtable > tbody").append(t);
+			$.fn.zTree.getZTreeObj("treeDemo").checkAllNodes(false);
+		}
+	}
+
+	function editPower(obj) {
+		$("[name=contents]", obj).val($("#debug").text());
+		$.get("../../machineRoom/editPower", $("[name]", obj).serialize(), function(d) {
+			initTable();
+		});
+	}
+
+	$(document).ready(function() {
+		//设置树状菜单
+		var setting = {
+			check : {
+				enable : true,
+				open : true
+			},
+			data : {
+				key : {
+					name : "name"
+				}
+			},
+			callback : {
+				onCheck : function() {
+					var temp = [];
+					a = $.fn.zTree.getZTreeObj("treeDemo").getCheckedNodes(true);
+					$.each(a, function(i, o) {
+						if (!this.isParent) {
+							temp.push({
+								name : this.name,
+								links : this.links
+							});
+						}
+					});
+					$("#debug").text(JSON.stringify(temp));
+				}
+			}
+		};
+
+		$.fn.zTree.init($("#treeDemo"), setting, theMenu);
+
+		var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+		treeObj.expandAll(true);
+
+		function tack() {
+			$.each(zTreeObj.getNodesByParam("status", 1, null), function(i, o) {
+				zTreeObj.checkNode(o, true, true);
+			})
+		}
+		initTable();
+	});
+</script>
+</head>
+<body>
+
+
+	<table class="gridtable" style="width: 69%; float: left;">
+		<thead>
+			<tr>
+				<td>序号</td>
+				<td>权限名称</td>
+				<td>备注</td>
+			</tr>
+		</thead>
+		<tbody>
+
+			<tr>
+				<td>1</td>
+				<td>管理员</td>
+				<td onClick="$.fn.zTree.getZTreeObj('treeDemo').checkAllNodes(true);">编辑</td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td>值班员</td>
+				<td onClick="$.fn.zTree.getZTreeObj('treeDemo').checkAllNodes(false);">编辑</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<span id="debug" style="float: left; display: none;"></span>
+
+
+	<!-- 弹框开始 -->
+	<div class="outbg" style="display: none;">
+		<div class="overlayCSS"></div>
+		<div class="b-wbox">
+			<div class="b-wtitle">
+				<div class="b-wtitle-txt">
+					<span>增加</span> <a href="javascript:void(0);" class="b-wclose" onclick="$('.outbg').hide();">X</a>
+				</div>
+			</div>
+			<div class="b-wcontent">
+				<table  width="100%" class="b-wTable">
+					<tr style="display: none;">
+						<td><input name="id" /></td>
+					</tr>
+					<tr>
+						<th>权限名称：</th>
+						<td><input name="userName" /></td>
+					</tr>
+					<tr>
+						<th valign="top">备注：</th>
+						<td><textarea name="remark"></textarea></td>
+					</tr>
+				</table>
+			</div>
+			<div class="b-wfoot">
+				<div class="fr">
+					<button class="btn_s sure mr10" onclick="editUser(this.parentNode.parentNode.parentNode);">保存</button>
+					<button class="btn_s remove" onclick="$('.outbg .b-wclose').click();">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="control-pannel">
+		<div class="fl">
+			<button class="controlBtn" onclick="addPower();">
+				<i class="icon-add"></i>增加
+			</button>
+		</div>
+
+		<div class="fr">
+			第 <input name="n" value="1" size="3" readonly="readonly" class="sameBgIpt"> 页 <input type="button" class="controlBtn" onClick="$('[name=n]',this.parentNode).val(1);initTable();" value="首页">
+			<button class="controlBtn" onclick="tpn=$('[name=n]',this.parentNode);if(tpn.val()>1){tpn.val(tpn.val()-1);initTable();}">上一页</button>
+			<button class="controlBtn" onclick="tpn=$('[name=n]',this.parentNode);count=$('[name=c]',this.parentNode);if(tpn.val()<count.val()){tpn.val(tpn.val()*1+1);initTable();}">下一页</button>
+			<button class="controlBtn" onclick="$('[name=n]',this.parentNode).val($('[name=c]',this.parentNode).val());initTable();">尾页</button>
+			<input name="s" value="10" style="display: none;"> 共 <input name="c" value="1" size="3" readonly="readonly" class="sameBgIpt"> 页
+		</div>
+	</div>
+
+	<div class="div-view-tree">
+		<ul id="treeDemo" class="ztree"></ul>
+	</div>
+
+</body>
+</html>

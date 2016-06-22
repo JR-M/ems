@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>设备列表</title>
+<link rel="stylesheet" href="css/page.css" type="text/css" />
+<style type="text/css">
+td {
+	text-align: center;
+}
+</style>
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+	function init(){
+		params = $(".control-pannel :text").serialize();
+		console.log(params);
+		$.getJSON("/icp/machineRoom/getSensorList", params, function(data) {
+			data = JSON.parse(data);
+			var tr = "";
+			$.each(data.list, function(i, e) {
+				tr += "<tr><td></td>";
+				tr += "<td>" + e.name + "</td>";
+				tr += "<td>" + e.id + "</td>";
+				tr += "<td>" + e.warningMin + "</td>";
+				tr += "<td>" + e.warningMax + "</td>";
+				if (e.equipType.typeName == "温度计") {
+					tr += "<td>°C</td>";
+				} else if (e.equipType.typeName == "湿度计") {
+					tr += "<td>%RH</td>";
+				} else {
+					tr += "<td></td>";
+				}
+				tr += "<td>" + e.ipAddress + "</td>";
+				tr += "<td>" + e.port + "</td>";
+				tr += "<td>" + e.upAddress + "</td>";
+				tr += "<td>" + e.channel + "</td>";
+				tr += "<td><img src='"+ e.equipType.viewUrl +"'></td>";
+				tr += "<td></td></tr>";
+			});
+			$("table.gridtable > tbody").html(tr);
+			$(".control-pannel [name=pageNumber]").val(data.pager.pageNumber);
+			$(".control-pannel [name=pageCount]").val(data.pager.pageCount);
+			
+			editEquipment();
+		});
+	}
+	
+	function editEquipment(){
+		$("table.gridtable > tbody > tr").dblclick(function(){
+			
+		});
+	}
+	$(function() {
+		init();
+	});
+</script>
+</head>
+<body>
+	<table class="gridtable">
+		<thead>
+			<tr>
+				<td>序号</td>
+				<td>设备名称</td>
+				<td>设备编号</td>
+				<td>最低值</td>
+				<td>最高值</td>
+				<td>单位</td>
+				<td>上报IP</td>
+				<td>上报端口</td>
+				<td>上报地址</td>
+				<td>通信频道</td>
+				<!-- <td>告警时间(小时)</td> -->
+				<td>缩略图</td>
+				<td>备注</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>1</td>
+				<td>温度传感器</td>
+				<td>1</td>
+				<td>22</td>
+				<td>26</td>
+				<td>°C</td>
+				<td>1</td>
+				<td><img src="img/icons-temperature-75x75.png" /></td>
+				<td></td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="control-pannel">
+		<div class="fl">
+			<button class="controlBtn" onclick='editPanel()'>
+				<i class="icon-add"></i>增加
+			</button>
+		</div>
+
+		<div class="fr">
+			第 <input name="pageNumber" value="1" size="3" readonly="readonly"
+				style="text-align: center; border: 0; background: #c5c8cb;">
+			页
+			<button
+				onclick="$('[name=pageNumber]',this.parentNode).val(1);init();">首页</button>
+			<button
+				onclick="tpn=$('[name=pageNumber]',this.parentNode);if(tpn.val()>1){tpn.val(tpn.val()-1);init();}">上一页</button>
+			<button
+				onclick="tpn=$('[name=pageNumber]',this.parentNode);count=$('[name=pageCount]',this.parentNode);if(tpn.val()<count.val()){tpn.val(tpn.val()*1+1);init();}">下一页</button>
+			<button
+				onclick="$('[name=pageNumber]',this.parentNode).val($('[name=pageCount]',this.parentNode).val());init();">尾页</button>
+			<input name="pageSize" value="3" style="display: none;"> 共<input
+				name="pageCount" value="1" size="3" readonly="readonly"
+				style="text-align: center; border: 0; background: #c5c8cb;">页
+		</div>
+	</div>
+	
+	<!-- <div class="edit-pannel" style="position: absolute; left:20%;top:10%;width:60%;height:70%;background-color: red;">
+	</div> -->
+</body>
+</html>

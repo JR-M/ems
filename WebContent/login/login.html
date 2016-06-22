@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>机房环境监控系统</title>
+<link type="text/css" rel="stylesheet" href="css/base.css" />
+<link type="text/css" rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="mainBg">
+	<div class="loginLogo">
+		<img src="images/logo.png" />
+	</div>
+	<div id="lgBox">
+
+		<div class="lg_l">
+			<div class="sub_lgImg">
+				<!--此DIV是为了兼容IE6-->
+				<div class="sub_lgImg_content">
+					<img src="images/loginimg.png" />
+				</div>
+			</div>
+		</div>
+		<!-- 登录 -->
+		<div class="lg_r" style="display:;">
+			<div class="lg_TitleRow">
+				<h1>用户登录_</h1>
+				<span class="fr"><a href="#" onClick="lg[0].style.display='none';lg[1].style.display='';mc(5);return false;">注册</a></span>
+			</div>
+			<ul class="lgUl">
+				<li><input type="text" placeholder="用户名" class="lg_ipt" /><i class="icon_human"></i></li>
+				<li><input type="password" placeholder="密码" class="lg_ipt" /><i class="icon_lock"></i></li>
+				<li><input type="text" placeholder="验证码" class="fl lg_ipt_code" /><i class="icon_code"></i> <span id="verificationCode" class="code" title="点击换一组" onClick="mc(5);">X3D5S</span></li>
+				<li><button class="btn_blue" onClick="sb();">登录</button> <label class="ml30"><input type="checkbox" /> 记住密码</label><span class="ml30"><a href="#">忘记密码？</a></span></li>
+				<li><em class="em-msg"></em></li>
+			</ul>
+		</div>
+
+
+		<!-- 注册 -->
+		<div class="lg_r" style="display: none;">
+			<div class="lg_TitleRow">
+				<h1>用户注册</h1>
+				<span class="fr"><a href="#" onClick="lg[0].style.display='';lg[1].style.display='none';mc(5);return false;">登录</a></span>
+			</div>
+			<ul class="lgUl">
+				<li><input type="text" placeholder="用户名" class="lg_ipt" /><i class="icon_human"></i></li>
+				<li><input type="password" placeholder="密码" class="lg_ipt" /><i class="icon_lock"></i></li>
+				<li><input type="password" placeholder="再次输入密码" class="lg_ipt" /><i class="icon_lock"></i></li>
+				<li><button class="btn_blue" onClick="rg();">注册</button></li>
+				<li><em class="em-msg"></em></li>
+			</ul>
+		</div>
+
+
+
+	</div>
+	<div class="footer">
+		©copyright 版权由 <strong>www.ihssc.com</strong> 所有
+	</div>
+</body>
+<script type="text/javascript">
+	//登录/注册模块
+	lg = document.getElementsByClassName("lg_r");
+	//消息栏
+	msg = document.getElementsByClassName("em-msg");
+	//验证码
+	vc = document.getElementById("verificationCode");
+
+	function sb() {
+
+		o = lg[0].getElementsByTagName("input");
+		if (o[0].value.length == 0 || o[1].value.length == 0 || o[2].value.length == 0)
+			msg[0].innerHTML = "输入不得为空!";
+		else if (o[2].value.toUpperCase() != vc.innerHTML)
+			msg[0].innerHTML = "验证码错误!";
+		else if (location.protocol == "file:")
+			location.href = "main.html";
+		else {
+			getAjaxHttp("../machineRoom/userList?userName=" + o[0].value + "&password=" + o[1].value + "&t=" + new Date(), function(r) {
+				eval("var d=" + r);
+				if (d.list.length == 0)
+					msg[0].innerHTML = "用户名或密码错误!";
+				else if (d.list[0].password == "false")
+					msg[0].innerHTML = "用户名或密码错误!";
+				else
+					location.href = "main.html";
+			});
+		}
+	}
+
+	function rg() {
+		o = lg[1].getElementsByTagName("input");
+		if (o[0].value.length == 0 || o[1].value.length == 0 || o[2].value.length == 0) {
+			msg[1].innerHTML = "输入不得为空!";
+		} else if (o[1].value != o[2].value) {
+			msg[1].innerHTML = "两次密码输入不一致!";
+		} else {
+			getAjaxHttp("../machineRoom/editUser?userName=" + o[0].value + "&password=" + o[1].value + "&status=未激活&power=&remark=" + new Date(), function(r) {
+				if (r == "重复添加")
+					msg[1].innerHTML = "用户名已存在,请更换!";
+				else if (r = "添加成功")
+					msg[1].innerHTML = "注册成功，待管理人员激活后可使用!";
+
+			});
+		}
+	}
+
+	function mc(len) {
+		c = 'ABCDEFGHJKMNPQRSTWXYZ2345678';//'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
+		for (i = 0, v = ''; i < len; i++)
+			v += c.charAt(Math.floor(Math.random() * c.length));
+		vc.innerHTML = v;
+		for (o = document.getElementsByTagName("input"), i = 0; i < o.length; i++) {
+			o[i].onfocus = function(t) {
+				msg[0].innerHTML = "";
+				msg[1].innerHTML = "";
+			}
+			o[i].value = '';
+		}
+	}
+	mc(5);
+
+	function getAjaxHttp(s, f) {
+		var xl;
+		try {
+			xl = new XMLHttpRequest();
+		} catch (e) {
+			xl = new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		xl.onreadystatechange = function() {
+			if (4 == xl.readyState)
+				if (200 == xl.status) {
+					f(xl.responseText);
+				}
+		}
+		xl.open("get", s, true);
+		xl.send("");
+	}
+</script>
+</html>

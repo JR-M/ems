@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>机房平面图</title>
+<link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="stylesheet" href="css/page.css" type="text/css" />
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/raindrops.js"></script>
+<script type="text/javascript" src="js/jquery.bloodforge.smoke-effect.1-0.min.js"></script>
+<script type="text/javascript">
+	function viewWarning(t, toDo) {
+		switch (toDo) {
+		case "过热":
+			(function() {
+				ts = (t.css("background-color") == "rgb(0, 249, 0)") ? "red" : "rgb(0, 249, 0)";
+				t.stop().animate({
+					backgroundColor : ts
+				}, 700, arguments.callee);
+			}());
+			break;
+		case "过冷":
+			(function() {
+				ts = (t.css("background-color") == "rgb(0, 249, 0)") ? "blue" : "rgb(0, 249, 0)";
+				t.stop().animate({
+					backgroundColor : ts
+				}, 700, arguments.callee);
+			}());
+			break;
+		case "过湿":
+			(function() {
+				$("<div><p>&nbsp</p></div>").css({
+					"height" : "100%"
+				}).appendTo(t).raindrops({
+					color : 'blue',
+					canvasHeight : 30,
+					rippleSpeed : 0.01,
+					frequency : 1,
+					density : 0
+				});
+			}());
+			break;
+		case "过干":
+			(function() {
+				ts = (t.css("background-color") == "rgb(0, 249, 0)") ? "#FF9966" : "rgb(0, 249, 0)";
+				t.stop().animate({
+					backgroundColor : ts
+				}, 700, arguments.callee);
+			}());
+			break;
+		case "烟感":
+			(function() {
+				$("<canvas></canvas>").css({
+					height : '100%',
+					width : '150%'
+				}).appendTo(t.css("overflow", "hidden")).SmokeEffect({
+					density : 4
+				});
+			}());
+			break;
+		case "水浸":
+			$("<div><p>&nbsp</p></div>").css({
+				"height" : "100%"
+			}).appendTo(t).raindrops({
+				color : 'blue',
+				canvasHeight : 150,
+				rippleSpeed : 0.01,
+				frequency : 1,
+				density : 0
+			});
+			break;
+		case "复原":
+			t.stop().find("*").remove();
+			break;
+		}
+	}
+	
+	$(document).ready(function() {
+		
+		$.get("../machineRoom/sensorList", function(d) {
+			$(".div-mask,.div-sensor").remove();
+			$(d).each(function(i, o) {
+				contents = $.parseJSON(o.contents);
+				if (o.type == "区域")
+					$(contents).each(function(j, k) {
+						$('<div id="'+k.id+'" class="div-mask" style="'+k.style+'" title="区域"/>').insertBefore(".div-template");
+					});
+				else {
+					$('<div id="'+o.id+'" class="div-sensor" style="' + contents.style + '" title="' + contents.type + '" parentId="' + contents.parentId + '" />').insertBefore(".div-template").css({
+						opacity : 1
+					}).data("contents", contents);
+				}
+			});
+			
+			v=0;
+			timer = -1;
+			$(".div-sensor").click(function(e) {
+				c = $(this).data("contents");
+				
+				arr = [];
+				for(r in c.coms[0])
+					arr = c.coms[0][r].feedback.replace(/\s*\w+\s+/g,'').split(",");
+				v = ++v<arr.length?v:0;
+				timer!=-1?clearTimeout(timer):v=0;
+				$("#ifc,#ifh").hide();
+				x1 = $(document).width();
+				x2 = $(".div-template").width();
+				y1 = $(document).height();
+				y2 = $(".div-template").height();
+				$('.div-template').css({
+					left : x1-e.clientX>x2?e.clientX+10:x1-x2,
+					top : y1-e.clientY>y2?e.clientY+10:y1-y2
+				});
+
+				if (c.coms.length > 1) {
+					comNames = [];
+					for (i = 0; i < c.coms.length; i++) {
+						for (tempN in c.coms[i])
+							comNames.push(tempN);
+					}
+					if (comNames.length > 2 ) {
+						comNames[1] = $(this).prop("data-com") == comNames[2]?comNames[1]:comNames[2];
+						$(this).prop("data-com",comNames[1]);
+					}
+					$.get("../machineRoom/sendOrder", {
+						id : this.id,
+						comName : comNames[1]
+					}, function(d) {
+						console.info(JSON.stringify(d));
+					});
+					return false;
+				}
+				if ("摄像头" == c.type) {
+					c["username"] = c.coms[0].video.ask.replace(/\,\w+/g, "");
+					c["password"] = c.coms[0].video.ask.replace(/\w+\,/g, "");
+					c.iChannelID = 1;
+					c.bZeroChannel = false;
+					c.streamtype = 1;
+					document.getElementById("ifc").src = "camera/cn/demo.html?" + JSON.stringify(c);
+					$(".div-template,#ifc").show();
+					return false;
+				}
+
+				childIfh = document.getElementById("ifh");
+				childIfh.contentWindow.sensorId = this.id;
+				$.get("../machineRoom/recordList", {
+					n : 1,
+					s : 30*arr.length,
+					sensorId : this.id
+				}, function(d) {
+					
+					b = [], t = new Date().getTime()-30000;
+					m = 0;
+					$(d.list).each(function(i, o) {
+						if(arr.length>0 && this.remark == arr[v])
+							b.push([ t+=1000, this.number ]);
+					});
+					childIfh.contentWindow.p.series[0].setData(b);
+					
+					(function(i) {
+						$.get("../machineRoom/recordList", {
+							n : 1,
+							s : arr.length,
+							sensorId : childIfh.contentWindow.sensorId
+						}, function(d) {
+							$(d.list).each(function(i,o){
+								if(arr.length>0 && o.remark == arr[v] && arr.length>0) 
+									childIfh.contentWindow.p.series[0].addPoint([ new Date().getTime(), o.number ], true, true);								
+							});
+						});
+						if ($("#ifh").is(":visible")) {
+							f = arguments.callee;
+							timer = setTimeout(function() {
+								f(i);
+							}, 1000);
+						}
+					}(true));
+				});
+				childIfh.contentWindow.p.yAxis[0].setTitle({
+					text : arr[v]
+				});
+				$(".div-template,#ifh").show();
+			});
+
+			setInterval(function() {
+				var obj = {};
+				$(".div-mask").each(function() {
+					$(this).data("warning", new Array());
+				});
+
+				try {
+					$(parent.window.theWarning.list).each(function(i, o) {
+						area = $("#" + $("#" + o.sensorId).attr("parentId"));
+						s = area.data("warning");
+						if (s.indexOf(this.warningType) < 0)
+							s.unshift(this.warningType)
+						area.data("warning", s);
+					});
+				} catch (e) {
+
+				}
+				$(".div-mask").each(function() {
+					a = $(this).data("warning");
+					if (a.indexOf($(this).attr("warn")) < 0) {
+						viewWarning($(this).attr("warn", ""), "复原");
+						if (a.length >= 0)
+							viewWarning($(this).attr("warn", a[0]), a[0]);
+					}
+
+				});
+
+				$.get("../machineRoom/recordList", {
+					n : 1,
+					s : 50
+				}, function(d) {
+					currentArray = d.list;
+					$(d.list).each(function(i, o) {
+						$("#" + o.sensorId).text(o.number);
+					});
+				});
+
+			}, 2000);
+
+		});
+
+		console.log("已经执行")
+
+		$("body > *").click(function(e) {
+			$('.div-template').hide();
+		});
+
+	});
+</script>
+</head>
+<body>
+	<span id="debug" style="position: absolute;"></span>
+	<img class="img-bg" alt="" src="img/crm.jpg" width="100%" />
+	<div class="div-mask" style="top: 18%; left: 22%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 18%; left: 35%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 18%; left: 49%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 18%; left: 63%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 20%; width: 12%; height: 28%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 34%; width: 13%; height: 37%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 48%; width: 13%; height: 37%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 64%; width: 9%; height: 28%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 78%; width: 12%; height: 28%; position: absolute"></div>
+
+	<div class="div-sensor" style="position: absolute; top: 18%; left: 22%;" title="温度计"></div>
+	<div class="div-sensor" style="position: absolute; top: 18%; left: 35%;" title="湿度计"></div>
+	<div class="div-sensor" style="position: absolute; top: 18%; left: 49%;" title="水浸传感器"></div>
+	<div class="div-sensor" style="position: absolute; top: 18%; left: 63%;" title="烟雾传感器"></div>
+	<div class="div-sensor" style="position: absolute; top: 48%; left: 20%;" title="摄像头"></div>
+	<div class="div-sensor" style="position: absolute; top: 48%; left: 34%;" title="门"></div>
+	<div class="div-sensor" style="position: absolute; top: 48%; left: 48%;" title="警灯"></div>
+	<div class="div-sensor" style="position: absolute; top: 48%; left: 64%;" title="电量表"></div>
+	<div class="div-sensor" style="position: absolute; top: 48%; left: 74%;" title="硬盘录像机"></div>
+	<div class="div-sensor" style="position: absolute; top: 48%; left: 78%;" title="短信猫"></div>
+
+	<div class="div-template">
+		<iframe id="ifc" width="100%" height="100%" style="border: 0;" src=""></iframe>
+		<iframe id="ifh" width="100%" height="100%" style="border: 0;" src="highcharts.html"></iframe>
+	</div>
+</body>
+</html>
+

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<title>温度数据</title>
+<script type="text/javascript" src="../js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="../js/highcharts.js"></script>
+<script type="text/javascript" src="../js/exporting.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		function getData() {
+			t = (20 + parseInt(Math.random() * 1000) % 400 / 100).toFixed(2);
+			if (location.protocol.indexOf("http") >= 0) {
+				$.getJSON("../data/d").done(function(data) {
+					t = data[0].p;
+				}).fail(function() {
+					console.error("数据获取失败");
+				});
+			}
+			return t;
+		}
+		Highcharts.setOptions({
+			global : {
+				useUTC : false
+			}
+		});
+		$('#container').highcharts({
+			chart : {
+				type : 'spline',
+				animation : Highcharts.svg, // don't animate in old IE
+				marginRight : 10,
+				events : {
+					load : function() {
+						// set up the updating of the chart each second
+						var series = this.series[0];
+						setInterval(function() {
+							var x = (new Date()).getTime(), // current time
+							y = getData() * 1;
+							series.addPoint([ x, y ], true, true);
+						}, 1000);
+					}
+				}
+			},
+			title : {
+				text : '温度数据'
+			},
+			xAxis : {
+				title : {
+					text : '时间'
+				},
+				type : 'datetime',
+				tickPixelInterval : 50
+			},
+			credits : {
+				enabled : false
+			},
+			yAxis : {
+				min : -30,
+				startOnTick : true,
+				max : 50,
+				title : {
+					text : '温度(°C)'
+				},
+				plotLines : [ {
+					value : 0,
+					width : 1,
+					color : '#808080'
+				} ]
+			},
+			tooltip : {
+				formatter : function() {
+					return '<b>' + this.series.name + '</b>' + Highcharts.numberFormat(this.y, 2) + '<b>' + '°C' + '</b>';
+				}
+			},
+			legend : {
+				enabled : false
+			},
+			exporting : {
+				enabled : false
+			},
+			series : [ {
+				name : '温度:',
+				data : (function() {
+					// generate an array of random data
+					var data = [], time = (new Date()).getTime(), i;
+
+					for (i = -19; i <= 0; i += 1) {
+						data.push({
+							x : time + i * 1000,
+							y : 0
+						});
+					}
+					return data;
+				}())
+			} ]
+		});
+	});
+</script>
+</head>
+<body>
+	<div id="container"
+		style="min-width: 410px; height:400px; margin: 0 auto"></div>
+</body>
+</html>

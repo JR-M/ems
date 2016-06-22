@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>海视三创机房环境监控系统</title>
+<link type="text/css" rel="stylesheet" href="css/base.css" />
+<link type="text/css" rel="stylesheet" href="css/style.css" />
+<link type="text/css" rel="stylesheet" href="css/box.css" />
+<script type="text/javascript" src="../computer_machine_room/data/system.js"></script>
+<script type="text/javascript" src="../computer_machine_room/js/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+	var theUser = {};
+	
+	var theWarning = {};
+
+	function editPassword(o) {
+		flag = true;
+		$("em.em-msg").text("");
+		$("input", o).each(function(i, o) {
+			if (o.value.length == 0) {
+				$("em.em-msg").text("输入不能为空");
+				$(o).focus();
+				flag = false;
+				return flag;
+			}
+		});
+		if ($(":password:eq(1)", o).val() != $(":password:eq(2)", o).val()) {
+			$("em.em-msg").text("输入密码不一致");
+			flag = false;
+		}
+
+		if (flag) {
+			$.get("../machineRoom/editUser", $("[name]", o).serialize(), function(d) {
+				$("em.em-msg").text(d);
+				if (d == "密码修改成功") {
+					$("em.em-msg").text("完成");
+					$(o).delay(1000).slideUp(300, function() {
+						$(o.parentNode).hide(100, function() {
+							$(o).show();
+						});
+					});
+				}
+			});
+		}
+	}
+
+	function initMenu(d, s) {
+		if (!!s) {
+			if (!!s && s != "未激活") {
+				a = [];
+				eval("a=" + d);
+				$.each(a, function() {
+				//	$(".leftcontent a[href='" + this.links + "']:contains('" + this.name + "')").addClass("has-power");
+					$(".leftcontent a[href='" + this.links + "']").addClass("has-power");
+				});
+				$(".leftcontent").find("dd:has(a[class!='has-power'])").remove().end().find("dl:not(:has(dd))").remove();
+			} else {
+				$(".leftcontent").find("dl").remove();
+			}
+		}
+		$(".leftcontent dt").click(function() {
+			a = $(this).toggleClass("dt-not-choice").find("~").slideToggle();
+			b = $("dd:visible", this.parentNode.parentNode).not(a).slideUp();
+			b.prevAll("dt").addClass("dt-not-choice");
+		}).find("~").hide();
+
+		$(".leftcontent dd").click(function() {
+			$(".cur", this.parentNode.parentNode).removeClass("cur");
+			$(this).addClass("cur");
+		});
+	}
+
+	$(function() {
+
+		setInterval(function() {
+			$.get("../machineRoom/warningList", {
+				remark : "getWarning()"
+			}, function(d) {
+				theWarning = d;
+				$("span.ml20 em").text(d.list.length);
+				if (d.list.length > 0)
+					$("div.noticeBox").slideDown().find("div.nobody").text(d.list[0].warningType);
+			});
+
+		}, 10000);
+
+		$.get("../machineRoom/getUser", {}, function(d) {
+			if (!!d.user) {
+				theUser = d.user;
+				$("span.span-user").text(d.user.userName);
+				initMenu(d.power.contents, d.user.status);
+			} else {
+				console.log("登录退出");
+				initMenu("", "未激活");
+			}
+		}).fail(function() {
+			initMenu();
+		});
+
+	});
+
+	function showWarningList() {
+		$("dl[data-name=报警列表] > dt:first").click();
+		$('iframe[name=right_box]').attr("src", $("dl[data-name=报警列表] a:first").attr("href"));
+	}
+</script>
+</head>
+<body class="bg">
+	<div class="mainBlock">
+
+		<div class="header">
+			<div class="fl mt10 ml15">
+				<img src="images/logo.png" />
+			</div>
+			<!--<ul class="fl nav01">
+				<li class="cur"><i class="icon_nav_01"></i>通讯录</li>
+				<li><i class="icon_nav_02"></i>模型管理</li>
+				<li><i class="icon_nav_03"></i>模块设计</li>
+				<li><i class="icon_nav_04"></i>图纸打印</li>
+				<li><i class="icon_nav_05"></i>文件管理</li>
+				<li><i class="icon_nav_06"></i>系统设置</li>
+			</ul> -->
+			<div class="fr mr20">
+				<ul class="tLink fr">
+					<li><a href="javascript:$('em.em-msg').text('');$('div.outbg').fadeIn(400);void(0)">修改密码</a></li>
+					<li><a href="javascript:void(0)">关于</a></li>
+					<li><a href="javascript:$.get('../machineRoom/getUser',{e:'del'});location.href='login.html';">退出</a></li>
+				</ul>
+				<div class="tUser cb">
+					<i class="icon_human2" style="position: relative; display: inline-block; left: 0; top: 2px;"></i> <span class="span-user">测试用户</span> <span class="ml20"> <a href="javascript:void(0)"
+						onclick="showWarningList()">消息 <em>0</em></a>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="leftsidebar_box">
+				<div class="leftcontent">
+					<div class="secMenuTitle" style="cursor: pointer;" onClick="$('iframe:first').attr('src','../computer_machine_room/room_to_view.html')">
+						<img src="images/icon-secmenu.png" />&nbsp;&nbsp;全景图
+					</div>
+					<dl class="system_log" data-name="报警列表">
+						<dt class="dt-not-choice">
+							报警列表<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/warning/warning_list.html" target="right_box">报警列表 </a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="系统管理 ">
+						<dt class="dt-not-choice">
+							系统管理 <img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/room_sensor_edit.html" target="right_box">设备分布</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="权限管理">
+						<dt class="dt-not-choice">
+							权限管理<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="role/user.html" target="right_box">用户管理 </a>
+						</dd>
+						<dd class="first_dd">
+							<a href="role/power.html" target="right_box">角色管理 </a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="短信息">
+						<dt class="dt-not-choice">
+							短信息<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/sms/sms_list.html" target="right_box">发送记录</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="配电系统">
+						<dt class="dt-not-choice">
+							配电系统<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=电量&remark=相电压" target="right_box">相电压</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=电量&remark=相电流" target="right_box">相电流</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=电量&remark=功率因素" target="right_box">功率因素</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=电量&remark=视在功率" target="right_box">视在功率</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=电量&remark=频率" target="right_box">频率</a>
+						</dd>												
+					</dl>
+					<dl class="system_log" data-name="UPS电源">
+						<dt class="dt-not-choice">
+							UPS电源<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=内部整流器" target="right_box">内部整流器</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=逆变器" target="right_box">逆变器</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=电池电压/电池电流" target="right_box">电池电压/电池电流</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=旁路" target="right_box">旁路</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=负载" target="right_box">负载</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="空调设备">
+						<dt class="dt-not-choice">
+							空调设备<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=运行状态" target="right_box">运行状态</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="机房温湿度">
+						<dt class="dt-not-choice">
+							机房温湿度<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=温度" target="right_box">温度</a>
+						</dd>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=湿度" target="right_box">湿度</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="漏水检测">
+						<dt class="dt-not-choice">
+							漏水检测<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=水浸" target="right_box">漏水检测</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="烟雾报警">
+						<dt class="dt-not-choice">
+							烟雾报警<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=烟感" target="right_box">烟雾报警</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="视频监控">
+						<dt class="dt-not-choice">
+							视频监控<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/video.html" target="right_box">运行状态</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="门禁系统">
+						<dt class="dt-not-choice">
+							门禁系统<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/door_status.html?type=门禁系统" target="right_box">运行状态</a>
+						</dd>
+					</dl>
+					<dl class="system_log" data-name="统计报表">
+						<dt class="dt-not-choice">
+							统计报表<img src="images/left/select_xl01.png">
+						</dt>
+						<dd class="first_dd">
+							<a href="../computer_machine_room/statistics_table.html?type=统计" target="right_box">统计报表</a>
+						</dd>
+					</dl>
+				</div>
+			</div>
+			<div class="rightsidebar_box">
+				<div class="rightcontent">
+					<iframe src="../computer_machine_room/room_to_view.html" width="100%" height="510px;" name="right_box" style="border: 0;"></iframe>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<!--消息提示-->
+	<div class="noticeBox" style="display: none;">
+		<div class="notop">
+			提示消息
+			<div class="rclose">
+				<a href="javascript:$('.noticeBox').slideUp();void(0)">x</a>
+			</div>
+		</div>
+		<div class="nobody" onclick="showWarningList();$('.noticeBox').slideUp();">
+			
+		</div>
+	</div>
+
+
+	<!-- 弹框开始 -->
+	<div class="outbg" style="display: none;">
+		<div class="overlayCSS"></div>
+		<div class="b-wbox">
+			<div class="b-wtitle">
+				<div class="b-wtitle-txt">
+					<span>修改密码</span> <a href="javascript:void(0);" class="b-wclose" onclick="$('.outbg').hide();">X</a>
+				</div>
+			</div>
+			<div class="b-wcontent">
+				<table class="b-wTable">
+					<tr style="display: none;">
+						<td><input name="remark" value="changePassword" /></td>
+					</tr>
+					<tr>
+						<th>原密码：</th>
+						<td><input type="password" name="userName" /></td>
+					</tr>
+					<tr>
+						<th>新密码：</th>
+						<td><input name="password" type="password" /></td>
+					</tr>
+					<tr>
+						<th>新密码：</th>
+						<td><input type="password" /></td>
+					</tr>
+					<tr>
+						<th></th>
+						<td><em class="em-msg" style="color: #f00; font-size: 14px; font-style: normal;"></em></td>
+					</tr>
+				</table>
+			</div>
+			<div class="b-wfoot">
+				<div class="fr">
+					<button class="btn_s sure mr10" onclick="editPassword(this.parentNode.parentNode.parentNode);">保存</button>
+					<button class="btn_s remove" onclick="$('.outbg .b-wclose').click();">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

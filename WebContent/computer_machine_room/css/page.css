@@ -1,0 +1,327 @@
+@charset "utf-8";
+
+html, body, ul {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	/*background: #e7ebef;*/
+	font: normal 14px small/1.2em "微软雅黑", "宋体", Arial, Times;
+	overflow: hidden;
+}
+
+ul, ol {
+	list-style: none;
+}
+
+img, input, button {
+	vertical-align: middle;
+}
+
+.fl {
+	float: left;
+}
+
+.fr {
+	float: right;
+}
+
+.cb {
+	clear: both;
+}
+
+.div-control {
+	background: gray;
+	width: 120px;
+	height: 190px;
+	position: absolute;
+	top: 1%;
+	left: 90%;
+	display: bnone;
+}
+
+.div-tools {
+	background: #036;
+	width: 70px;
+	height: 500px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin-top: 10px;
+	display: block;
+}
+
+.div-mask {
+	background: green;
+	-moz-border-radius: 5px; /* Gecko browsers */
+	-webkit-border-radius: 5px; /* Webkit browsers */
+	border-radius: 5px; /* W3C syntax */
+	opacity: 0.7;
+	border-radius: 5px;
+	width: 30px;
+	height: 30px;
+	left: 15%;
+}
+
+.div-sensor {
+	font: normal small-caps bold 12px/7em arial, verdana;
+	color: white;
+	width: 30px;
+	height: 30px;
+	text-align: center;
+	background-size: 100% 100%;
+}
+
+.div-sensor[title^='温度计'] {
+	background: url(../img/icons-temperature-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 10%;
+	left: 15%;
+}
+
+.div-sensor[title^='湿度计'] {
+	background: url(../img/icons-humidity-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 20%;
+	left: 15%;
+}
+
+.div-sensor[title^='水浸传感器'] {
+	background: url(../img/icons-waterImmersion-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 30%;
+	left: 15%;
+}
+
+.div-sensor[title^='烟雾传感器'] {
+	background: url(../img/icons-smoke-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 40%;
+	left: 15%;
+}
+
+.div-sensor[title^='摄像头'] {
+	background: url(../img/icons-camera-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 50%;
+	left: 15%;
+}
+
+.div-sensor[title^='门'] {
+	background: url(../img/icons-door-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 60%;
+	left: 15%;
+}
+
+.div-sensor[title^='警灯'] {
+	background: url(../img/icons-alert-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 70%;
+	left: 15%;
+}
+
+.div-sensor[title^='电量表'] {
+	background: url(../img/icons-meter-75x75.png) no-repeat;
+	background-size: 100% 100%;
+	top: 79%;
+	left: 15%;
+}
+/*页面里面的宽度*/
+.div-template {
+	width: 400px;
+	height: 350px;
+	display: none;
+	position: absolute;
+	overflow: hidden;
+}
+
+/*warning list*/
+.gridtable {
+	width: 100%;
+	background: #d8d8d8;
+	border-spacing : 1px;
+}
+
+.gridtable>thead>tr>td {
+	font: bold 16px "宋体", Arial, Times;
+	text-align: center;
+}
+
+.gridtable>tbody>tr>td {
+	font: normal 14px "宋体", Arial, Times;
+	background: #fff;
+}
+
+.gridtable td {
+	padding: 8px;
+}
+
+.gridtable>*>tr>td:first-child {
+	width: 35px;
+	text-align: center;
+}
+
+.gridtable>*>tr:nth-child(2n) {
+	background: #f5f8fa;
+}
+
+.gridtable>*>tr:HOVER {
+	background: #3eafe0 !important;
+	color: #3eafe0;
+}
+
+.gridtable>*>tr.cur {
+	background: #3eafe0 !important;
+	color: #3eafe0;
+}
+
+.control-pannel {
+	background-color: #c1d9f3;
+	text-align: right;
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	right: 0;
+	padding: 10px;
+	color: #000;
+	font-size: 14px;
+	width: 90%;
+}
+
+.sameBgIpt {
+	width: 40px;
+	text-align: center;
+	border: 0;
+	background: #c1d9f3;
+	cursor: default;
+}
+
+.icon-add {
+	width: 11px;
+	height: 11px;
+	display: inline-block;
+	background: url(../../login/images/icon-add.png) left top no-repeat;
+	margin-right: 5px;
+}
+
+.controlBtn {
+	height: 25px;
+	padding: 0px 7px;
+	background: #ebebeb;
+	background: linear-gradient(to bottom, #f2f2f2 0, #ebebeb 50%, #ddd 50%, #cfcfcf 100%);
+	border: 1px solid #707070;
+	border-radius: 3px;
+	color: #000;
+	font-size: 14px;
+}
+
+.controlBtn:active, .controlBtn:hover {
+	background: #d9f0fc;
+	background: linear-gradient(to bottom, #eaf6fd 0, #d9f0fc 50%, #bee6fd 50%, #a7d9f5 100%);
+	border-color: #3c7fb1;
+}
+
+.controlBtn:active {
+	box-shadow: 0 0 3px #48d8fb inset;
+}
+
+.div-view-editPanel>div>iframe, .div-view-editPanel>div>div {
+	float: left;
+	border: 0;
+	height: 97%;
+	width: 33%;
+}
+
+/* circle */
+.div {
+	float: left;
+}
+
+/* role */
+.div-view-tree {
+	width: 30%;
+	height: 100%;
+	float: right;
+}
+
+.p-search {
+	padding-top: 6px;
+	padding-bottom: 12px;
+	font-size: 14px;
+}
+
+.p-search span {
+	margin-right: 30px;
+}
+
+.p-search span:last-child {
+	margin-right: 10px;
+}
+
+.p-search input {
+	min-width: 150px;
+	height: 26px;
+	line-height: 26px;
+	font-size: 14px;
+	padding-left: 5px;
+	border: 1px solid #ccc;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) inset;
+}
+
+.p-search input:hover {
+	border-color: #b2b2b2;
+}
+
+.p-search input:focus {
+	border-color: #f59942;
+}
+
+.p-search button {
+	min-width: 75px;
+	height: 30px;
+	font-size: 14px;
+	border: 1px solid #1b7cb2;
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+	background: #3592c6;
+	background: linear-gradient(to bottom, #449acb 0, #3592c6 100%);
+	color: #fff;
+	cursor: pointer;
+	border-radius: 3px;
+}
+
+.p-search button:hover {
+	background: #329cd6;
+	background: linear-gradient(to bottom, #45a8e0 0, #329cd6 100%);
+}
+
+/* video */
+.videobox li {
+	list-style-type: none;
+	width: 330px;
+	height: 180px;
+	margin-right: 10px;
+	margin-bottom: 15px;
+	float: left;
+}
+
+.video {
+	width: 330px;
+}
+
+/*温度--显示宽度*/
+.div-highcharts {
+	width: 400px;
+	height: 250px;
+}
+
+/* skin */
+/*
+.gridtable>thead>tr>td {
+	background: #3097c4;
+	color: #fff;
+}
+*/
+.gridtable>thead>tr>td {
+	background: #5088c9;
+	color: #fff;
+}

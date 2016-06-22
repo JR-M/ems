@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>短信记录</title>
+<link rel="stylesheet" href="../../login/css/box.css" type="text/css" />
+<link rel="stylesheet" href="../css/page.css" type="text/css" />
+<style type="text/css">
+.gridtable>tbody>tr>td {
+	text-align: center;
+}
+</style>
+<script type="text/javascript" src="../js/jquery-1.10.2.js"></script>
+<script>
+	function initTable() {
+		params = $(".control-pannel :text").serialize();
+
+		$.getJSON("../../sms/smsList", params, function(data) {
+
+			console.info(JSON.stringify(data))
+			$(".gridtable > tbody > *").remove();
+			$(data.list).each(function(i, e) {
+				t = "<tr>";
+				t += "<td style='display:none' name='id'>" + e.id + "</td>";
+				t += "<td>" + ((data.pager.pageNumber - 1) * data.pager.pageSize + i + 1) + "</td>";
+				t += "<td name='sensorId'>" + e.sensorId + "</td>";
+				t += "<td name='warningTime'>" + e.warningTime + "</td>";
+				t += "<td name='warningVal'>" + e.warningVal + "</td>";
+				t += "<td name='warningType'>" + e.warningType + "</td>";
+				t += "<td name='status'>" + e.status + "</td>";
+				t += "<td name='person'>" + (!e.person ? "" : e.person) + "</td>";
+				t += "<td name='processTime'>" + (!e.processTime ? "" : e.processTime) + "</td>";
+				t += "<td name='details'>" + (!e.details ? "" : e.details) + "</td>";
+				t += "<td name='remark'>" + (!e.remark ? "" : e.remark) + "</td>";
+				t += "</tr>";
+				$(".gridtable > tbody").append(t);
+			});
+
+			$(".control-pannel [name=n]").val(data.pager.pageNumber);
+			$(".control-pannel [name=c]").val(data.pager.pageCount);
+
+		});
+	}
+
+	function editWarning(obj) {
+		$.get("../../machineRoom/editWarning", $("[name]", obj).serialize(), function(d) {
+			initTable();
+		});
+	}
+	$(document).ready(function() {
+		initTable();
+
+		$(".debug").animate({
+			left : "+=50",
+			backgroundColor:"#F00"
+		}, 5000, function() {
+			// Animation complete.
+		})
+	});
+</script>
+</head>
+<body>
+	<table class="gridtable">
+		<thead>
+			<tr>
+				<td>序号</td>
+				<td>发送时间</td>
+				<td>接收人</td>
+				<td>内容</td>
+				<td>备注</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>1</td>
+				<td>2016/1/25 16:54:00</td>
+				<td>张三</td>
+				<td>温度计 过热;湿度计 过干</td>
+				<td>备注</td>
+
+			</tr>
+			<tr>
+				<td>2</td>
+				<td>2016/1/25 16:54:00</td>
+				<td>张三</td>
+				<td>温度计 过热;湿度计 过干</td>
+				<td>备注</td>
+
+			</tr>
+			<tr>
+				<td>3</td>
+				<td>2016/1/25 16:54:00</td>
+				<td>张三</td>
+				<td>温度计 过热;湿度计 过干</td>
+				<td>备注</td>
+
+			</tr>
+			<tr>
+				<td>4</td>
+				<td>2016/1/25 16:54:00</td>
+				<td>张三</td>
+				<td>温度计 过热;湿度计 过干</td>
+				<td>备注</td>
+
+			</tr>
+			<tr>
+				<td>5</td>
+				<td>2016/1/25 16:54:00</td>
+				<td>张三</td>
+				<td>温度计 过热;湿度计 过干</td>
+				<td>备注</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="control-pannel">
+		<div class="fl" style="display: none;">
+			<button class="controlBtn" onclick="$('.outbg').show().find(':text,:password,textarea').val('');">
+				<i class="icon-add"></i>增加
+			</button>
+		</div>
+
+		<div class="fr">
+			第 <input name="n" value="1" size="3" readonly="readonly" class="sameBgIpt"> 页
+			<button class="controlBtn" onClick="$('[name=n]',this.parentNode).val(1);initTable();">首页</button>
+			<button class="controlBtn" onclick="tpn=$('[name=n]',this.parentNode);if(tpn.val()>1){tpn.val(tpn.val()-1);initTable();}">上一页</button>
+			<button class="controlBtn" onclick="tpn=$('[name=n]',this.parentNode);count=$('[name=c]',this.parentNode);if(tpn.val()<count.val()){tpn.val(tpn.val()*1+1);initTable();}">下一页</button>
+			<button class="controlBtn" onclick="$('[name=n]',this.parentNode).val($('[name=c]',this.parentNode).val());initTable();">尾页</button>
+			<input name="s" value="10" style="display: none;"> 共 <input name="c" value="1" size="3" readonly="readonly" class="sameBgIpt"> 页
+		</div>
+	</div>
+
+	<div class="debug" style="width: 5em; height: 5em; background: red;position: absolute;"></div>
+</body>
+</html>

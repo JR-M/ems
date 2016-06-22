@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>折线图</title>
+<link rel="stylesheet" href="css/page.css" type="text/css" />
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="js/highcharts.js"></script>
+<script type="text/javascript" src="js/highchartTheme.js"></script>
+<script type="text/javascript">
+	var set = {
+		title : {
+			text : ''
+		},
+		xAxis : {
+			type : 'datetime'
+		},
+		yAxis : {
+			title : {
+				text : '温度(°C)'
+			}
+		//		,tickPositions : [ -10, 0, 10, 20, 30, 40 ]
+		},
+		legend : {
+			enabled : false
+		},
+		plotOptions : {
+			area : {
+				fillColor : {
+					linearGradient : {
+						x1 : 0,
+						y1 : 0,
+						x2 : 0,
+						y2 : 1
+					},
+					stops : [ [ 0, Highcharts.getOptions().colors[0] ], [ 1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba') ] ]
+				},
+				lineWidth : 1,
+				marker : {
+					enabled : false
+				},
+				shadow : false,
+				states : {
+					hover : {
+						lineWidth : 1
+					}
+				},
+				threshold : null
+			}
+		},
+		series : [ {
+			type : 'area',
+			name : '机房',
+			data : (function() { // generate an array of random data 
+				var data = [], time = (new Date()).getTime(), i;
+				for (i = -30; i <= 0; i++) {
+					data.push({
+						x : time + i * 1000,
+						y : 0
+					});
+				}
+				return data;
+			})()
+		} ]
+	};
+	var p;
+	$(function() {
+		$("#p").highcharts(set);
+		Highcharts.setOptions(dyhTheme);
+		$("#h").highcharts(set);
+		Highcharts.setOptions(dyfTheme);
+		$("#f").highcharts(set);
+		Highcharts.setOptions(dywTheme);
+		$("#w").highcharts(set);
+
+		(function() {
+			p = $('#p').highcharts();
+			h = $('#h').highcharts();
+			f = $('#f').highcharts();
+			w = $('#w').highcharts();
+
+			h.yAxis[0].setCategories([ 30, 40, 50, 60, 70 ]);
+			h.yAxis[0].setTitle({
+				text : "湿度(%RH)"
+			});
+
+			w.yAxis[0].setCategories([ -1, 0, 1 ]);
+			w.yAxis[0].setTitle({
+				text : "水浸"
+			});
+			f.yAxis[0].setCategories([ -1, 0, 1 ]);
+			f.yAxis[0].setTitle({
+				text : "烟雾"
+			});
+
+/* 			setInterval(function() {
+				t = (new Date()).getTime(), // current time 
+				r = parseInt(Math.random() * 1000);
+				p.series[0].addPoint([ t, (20 + r % 400 / 100).toFixed(2) * 1 ], true, true);
+				h.series[0].addPoint([ t, (45 + r % 20) * 1 ], true, true);
+				w.series[0].addPoint([ t, (r + 7) % 2 ], true, true);
+				f.series[0].addPoint([ t, r % 2 ], true, true);
+
+			}, 1000); */
+		}());
+
+		$('#h,#w,#f').hide();
+		
+	});
+</script>
+</head>
+<body>
+	<div class="div-highcharts" id="p"></div>
+	<div class="div-highcharts" id="h"></div>
+	<div class="div-highcharts" id="w"></div>
+	<div class="div-highcharts" id="f"></div>
+</body>
+</html>

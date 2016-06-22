@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta HTTP-EQUIV="pragma" CONTENT="no-cache">
+<meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+<meta HTTP-EQUIV="expires" CONTENT="0">
+<title>JS打造多彩变色泡泡(防屏幕保护效果)_网页代码站(www.webdm.cn)</title>
+<style type="text/css">
+html, body {
+	border: none;
+	overflow: hidden;
+	height: 100%;
+}
+
+body {
+	background: green;
+}
+</style>
+</head>
+<body onload="Demo()">
+	<script>
+		/**
+		 * JavaScript Bubbles
+		 *  By EtherDream 2010
+		 */
+		+function() {
+			// 浏览器辅助
+			var _VER_ = navigator.userAgent;
+			var _FF_ = /Firefox/.test(_VER_);
+			var _IE6_ = /IE 6/.test(_VER_);
+			var W3C = !!window.addEventListener;
+			try {
+				document.execCommand("BackgroundImageCache", false, true)
+			} catch (e) {
+			}
+			// 常量
+			var R = 111; //泡泡半径
+			var POW_RATE = 0.001; //补偿概率
+			var POW_MIN = 0.1; //补偿范围(基于诞生速度)
+			var POW_MAX = 0.3;
+			var START_X_MIN = 8; //X方向诞生速度范围
+			var START_X_MAX = 12;
+			var START_Y_MIN = 6; //Y方向诞生速度范围
+			var START_Y_MAX = 8;
+			var D2 = 4 * R * R; //圆心距离^2的范围.小于最小值则进入重叠状态
+			var rnd = Math.random;
+			var arrBubs = [];
+			var iBottom;
+			var iRight;
+			//function Init()
+			//{
+			if (W3C)
+				document.addEventListener("resize", handleResize, false);
+			else
+				window.attachEvent("onresize", handleResize);
+
+			handleResize();
+			Timer(render, 17);
+			//}
+
+			function Timer(call, time) {
+				var last = +new Date;
+				var delay = 0;
+
+				return setInterval(function() {
+					// 时间差累计
+					var cur = +new Date;
+					delay += (cur - last);
+					last = cur;
+
+					// 计算帧数
+					if (delay >= time) {
+						call();
+						delay %= time;
+					}
+				}, 1);
+			}
+
+			function render() {
+				var i, objBub;
+
+				for (i = 0, n = arrBubs.length; i < n; i++) {
+					objBub = arrBubs[i];
+					objBub.update();
+
+					//
+					// 一定几率给予额外补偿
+					//
+					//if(rnd() < POW_RATE)
+					//	objBub.speedUp(POW_MIN + rnd() * (POW_MAX - POW_MIN));
+				}
+			}
+
+			function handleResize() {
+				iRight = document.documentElement.clientWidth - 2 * R;
+				iBottom = document.documentElement.clientHeight - 2 * R;
+			}
+
+			window.CreateBubble = function() {
+				var obj = new Bubble();
+
+				obj.shot(START_X_MIN + rnd() * (START_X_MAX - START_X_MIN), START_Y_MIN + rnd() * (START_Y_MAX - START_Y_MIN));
+
+				arrBubs.push(obj);
+			};
+
+			var T = 0;
+
+			/******************************
+			 * 类: Bubble
+			 * 说明: 单个泡泡
+			 ******************************/
+			function Bubble() {
+				var APLHA = 0.8;
+				var POW = [ 1, APLHA, APLHA * APLHA ];
+				var kOpa = [];
+				var kStp = [];
+				var arrFlt = [];
+
+				var id = T++;
+				var x = 0, y = 0;
+				var vx = 0, vy = 0;
+				var arrD2 = [];
+
+				var vx_def, vy_def;
+				var styBox;
+				var output;
+
+				var round = Math.round;
+				var abs = Math.abs;
+				var sin = Math.sin;
+				var rnd = Math.random;
+
+				function Init() {
+					var oBox = document.createElement("div");
+					styBox = oBox.style;
+
+					document.body.appendChild(oBox);
+
+					styBox.position = "absolute";
+					styBox.width = R * 2 + "px";
+					styBox.height = R * 2 + "px";
+
+					for (var i = 0; i < 4; i++) {
+						var div = document.createElement("div");
+						var sty = div.style;
+
+						sty.position = "absolute";
+						sty.width = "222px";
+						sty.height = "222px";
+
+						oBox.appendChild(div);
+
+						// 泡泡顶层
+						if (i == 3) {
+							if (_IE6_)
+								sty.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src=http://www.zzsky.cn/effect/images/201110/302230/heart.png)";
+							else
+								sty.backgroundImage = "url(http://www.zzsky.cn/effect/images/201110/302230/heart.png)";
+
+							//output = div;
+							break;
+						}
+
+						kOpa[i] = 3 * rnd();
+						kStp[i] = 0.02 * rnd();
+
+						if (W3C) {
+							sty.backgroundImage = "url(http://www.zzsky.cn/effect/images/201110/302230/ch" + i + ".png)";
+							arrFlt[i] = sty;
+						} else {
+							sty.filter = "alpha progid:DXImageTransform.Microsoft.AlphaImageLoader(src=http://www.zzsky.cn/effect/images/201110/302230/ch" + i + ".png)";
+							arrFlt[i] = div.filters.alpha;
+						}
+					}
+				}
+
+				function updateColor() {
+					var i, v;
+
+					for (i = 0; i < 3; i++) {
+						v = abs(sin(kOpa[i] += kStp[i] * rnd()));
+						v *= POW[i];
+
+						v = ((v * 1e4) >> 0) / 1e4;
+						arrFlt[i].opacity = W3C ? v : v * 100;
+					}
+				}
+
+				function shot(_vx, _vy) {
+					vx_def = _vx;
+					vy_def = _vy;
+
+					vx = _vx;
+					vy = _vy;
+				}
+
+				function getPos() {
+					return {
+						x : x,
+						y : y
+					};
+				}
+
+				function getSpeed() {
+					return {
+						vx : vx,
+						vy : vy
+					};
+				}
+
+				function setSpeed(_vx, _vy) {
+					vx = _vx;
+					vy = _vy;
+				}
+
+				function speedUp(rate) {
+					var r = vy / vx;
+
+					vx = vx_def * rate;
+					vy = vx * r;
+				}
+
+				function getID() {
+					return id;
+				}
+
+				function update() {
+					x += vx; //移动
+					y += vy;
+
+					//
+					// 边界碰撞
+					//
+					if (x >= iRight) {
+						vx = -vx;
+						x = iRight;
+					} else if (x <= 0) {
+						vx = -vx;
+						x = 0;
+					}
+
+					if (y >= iBottom) {
+						vy = -vy;
+						y = iBottom;
+					} else if (y <= 0) {
+						vy = -vy;
+						y = 0;
+					}
+
+					//
+					// 泡泡碰撞
+					//
+					var i, p;
+					for (i = 0, n = arrBubs.length; i < n; i++) {
+						bub = arrBubs[i];
+
+						if (bub == this)
+							continue;
+
+						p = bub.getPos();
+						var dx = p.x - x;
+						var dy = p.y - y;
+
+						var dx2 = dx * dx;
+						var dy2 = dy * dy;
+						var d2 = dx2 + dy2;
+
+						var tid = bub.getID();
+						var preD2 = arrD2[tid];
+						arrD2[tid] = d2;
+
+						if (d2 > D2)
+							continue;
+
+						if (d2 > preD2)
+							continue;
+
+						//
+						// 碰撞计算
+						//
+						p = bub.getSpeed();
+
+						var Vx = p.vx;
+						var Vy = p.vy;
+
+						var z1 = (Vy - vy) * dx * dy;
+						var z2 = (Vx - vx) * dx * dy;
+
+						// 当前泡泡 新速度
+						vx = (vx * dy2 + Vx * dx2 + z1) / d2;
+						vy = (vy * dx2 + Vy * dy2 + z2) / d2;
+
+						// 被撞泡泡 新速度
+						bub.setSpeed((vx * dx2 + Vx * dy2 - z1) / d2, (vy * dy2 + Vy * dx2 - z2) / d2);
+					}
+
+					if (_FF_) {
+						styBox.left = round(x) + "px";
+						styBox.top = round(y) + "px";
+					} else {
+						styBox.pixelLeft = round(x);
+						styBox.pixelTop = round(y);
+					}
+
+					updateColor();
+				}
+
+				this.shot = shot;
+				this.update = update;
+				this.speedUp = speedUp;
+				this.getSpeed = getSpeed;
+				this.setSpeed = setSpeed;
+				this.getPos = getPos;
+				this.getID = getID;
+
+				Init();
+			}
+
+		}();
+	</script>
+	<script type="text/javascript">
+		var MAX = 5;
+		var i = 0;
+		function Demo() {
+			CreateBubble();
+			if (++i < MAX)
+				setTimeout(Demo, 1000);
+		}
+	</script>
+	<br />
+	<p>
+		<a href="http://www.webdm.cn">网页代码站</a> - 最专业的网页代码下载网站 - 致力为中国站长提供有质量的网页代码！
+	</p>
+</body>
+</html>

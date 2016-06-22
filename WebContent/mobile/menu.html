@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>监测系统</title>
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+}
+
+#box {
+	height: 1920px;
+	width: 1080px;
+	background-image: url(img/images/beijingtu.jpg);
+	background-repeat: no-repeat;
+	background-position: center top;
+	margin:0 auto;
+	position: relative;
+}
+.daohang {
+	border-bottom: 1px #FFF solid;
+	height:210px;
+}
+
+.jiance {
+	color: #FFF;
+	font-size: 60px;
+	text-align:center;
+	padding-top:80px;
+	
+}
+
+.liebiao {
+	margin-left:80px;
+	margin-top:-65px;
+}
+
+.xinxi {
+    margin-left:946px;
+	margin-top:-65px;
+
+}
+
+.menu {
+	position: absolute;
+}
+
+.menu, .template {
+	margin: 10px;
+	color: white;
+	font: normal normal 2.5em/16em Arial, "微软雅黑", Helvetica, sans-serif;
+}
+
+.menu[data-title=配电系统] {
+	width: 400px;
+	height: 400px;
+	top:250px;
+	left:20px;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+	text-align: center;
+	background: #1a2a2e url("img/images/peidian.png") no-repeat 50% 20%;
+}
+
+.menu[data-title=机房温湿度] {
+	width: 400px;
+	height: 400px;
+	top:240px;
+	left:450px;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+	text-align: center;
+	background: #1a2a2e url("img/images/wendu.png") no-repeat 50% 20%;
+}
+
+.menu[data-title=门禁系统] {
+	width: 400px;
+	height: 400px;
+	top:670px;
+	left:20px;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+	text-align: center;
+	background: #1a2a2e url("img/images/quanxian.png") no-repeat 50% 20%;
+}
+
+.menu[data-title=烟雾报警] {
+	width: 400px;
+	height: 400px;
+	top:670px;
+	left:450px;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+	text-align: center;
+	background: #1a2a2e url("img/images/yanwu.png") no-repeat 50% 20%;
+}
+
+.menu[data-title=漏水检测] {
+	width: 400px;
+	height: 400px;
+	top:1100px;
+	left:20px;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+	text-align: center;
+	background: #1a2a2e url("img/images/xitong.png") no-repeat 50% 20%;
+}
+
+.template {
+	float: left;
+	width: 400px;
+	height: 400px;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+	text-align: center;
+	background: #1a2a2e url("img/images/tongji.png") no-repeat 50% 20%;
+}
+
+.menu:hover, .template:hover {
+	background-color: #46545f;
+}
+</style>
+<script type="text/javascript" src="../login/js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="../computer_machine_room/js/jquery-ui.js"></script>
+<script type="text/javascript">
+	theUser = {};
+	sensors = [];
+	arrBubs = [];
+	iBottom = 1920;
+	iRight = 1080;
+	T = 0;
+	arrColor = [["#a25aeb","#4b1583"],["#21e199","#0c724c"],[" #ffcc4c","#c08d0e"],["#2ba7f9","#105583"],["#ff4d8f","#a01247"]];
+	$(function() {
+
+		$.get("../machineRoom/sensorList", {
+			s : 100
+		}, function(d) {
+			sensors = d;
+		});
+		$.get("../machineRoom/getUser", {}, function(d) {
+			if (!!d.user) {
+				theUser = d.user;
+				initMenu(d.power ? d.power.contents : "", d.user ? d.user.status : "");
+			} else {
+				console.log("登录退出");
+				location.href = "login.html";
+			}
+		}).fail(function() {
+			initMenu();
+		});
+
+		$(".menu").click(function() {
+			type = $(this).attr("data-type").split(",");
+			$(".menu").hide();
+			$.each(sensors, function(i, o) {
+				if (type.indexOf(o.type) > -1) {
+					$(".template:hidden").clone().html(o.name).insertBefore(".template:hidden").show().click(function() {
+						contents = "";
+						for (i in b = $.parseJSON(o.contents).coms) {
+							for(j in b[i]){
+								contents += b[i][j].feedback.replace(/\s*\w+\s+[^,]\s*/g,"") + "|";
+							}
+						}
+						location.href = "sensor.html?id="+o.id+"&name="+o.name+"&type="+o.type+"&contents="+contents.replace(/\|$/g,"");
+					});
+				}
+			});
+		});
+
+		$(".liebiao > img").click(function() {
+			location.href = "menu.html";
+		});
+		
+			$($(".menu")).each(function(i, o) {
+				obj = new Bubble(o);
+				obj.setSpeed(Math.random()>0.5?2:-2, Math.random()>0.5?2:-2);
+				arrBubs.push(obj);
+			});
+			step = 0;
+			setInterval(function() {
+				for (var i = 0, n = arrBubs.length; i < n; i++) {
+					arrBubs[i].update();
+				}
+				if (step++ % 50 == 0) {
+					for (var i = 0, n = arrBubs.length; i < n; i++) {
+						$(arrBubs[i].obj).stop().animate({
+							backgroundColor : arrColor[i][Math.floor(Math.random()*2)]//"rgb(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ")"
+						}, 700);
+					}
+				}
+			}, 20);
+		
+	});
+
+	function initMenu(d, s) {
+		if (!!s && s != "未激活") {
+			$(".menu").hide();
+			$.each($.parseJSON(d), function(i, o) {
+				$(".menu[data-inner='" + o.name + "']").show();
+			});
+			$(".menu:hidden").remove();
+		}
+	}
+
+	function Bubble(obj) {
+		this.obj = obj;
+		var id = T++;
+		var x = 0, y = 0;
+		var r = 0;
+		var vx = 0, vy = 0;
+		var arrD = [];
+
+		function Init() {
+			r = $(obj).width() / 2;
+			x = $(obj).position().left;
+			y = $(obj).position().top;
+		}
+
+		function getPos() {
+			return {
+				x : x,
+				y : y
+			};
+		}
+
+		function getRadiu() {
+			return r;
+		}
+		
+		function getID() {
+			return id;
+		}
+
+		function getSpeed() {
+			return {
+				vx : vx,
+				vy : vy
+			};
+		}
+
+		function setSpeed(_vx, _vy) {
+			vx = _vx;
+			vy = _vy;
+		}
+
+		function update() {
+			x += vx;
+			y += vy;
+
+			if (x >= iRight - 2 * r-20 || x <= 0) {
+				vx = -vx;
+				x = x <= 0 ? 0 : iRight - 2 * r-20;
+			}
+
+			if (y >= iBottom - 2 * r-20 || y <= 200) {
+				vy = -vy;
+				y = y <= 200 ? 200 : iBottom - 2 * r-20;
+			}
+
+			for (var i = 0; i < arrBubs.length; i++) {
+				bub = arrBubs[i];
+				if (bub == this)
+					continue;
+				p = bub.getPos();
+				d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y);
+				D = (r + bub.getRadiu()) * (r + bub.getRadiu());
+				preD = arrD[bub.getID()];
+				arrD[bub.getID()] = d;
+				if (d <= D && preD > D) {
+					Vx = bub.getSpeed().vx;
+					Vy = bub.getSpeed().vy;
+					bub.setSpeed(vx,vy);
+					vx = Vx;
+					vy = Vy;
+				}
+			}
+			obj.style.left = Math.round(x) + "px";
+			obj.style.top = Math.round(y) + "px";
+		}
+
+		this.update = update;
+		this.getSpeed = getSpeed;
+		this.setSpeed = setSpeed;
+		this.getPos = getPos;
+		this.getRadiu = getRadiu;
+		this.getID = getID;
+
+		Init();
+	}
+</script>
+
+
+</head>
+
+<body>
+	<div id="box">
+        <div class="daohang">
+		    <div class="jiance">菜单</div>
+		    <div class="liebiao">
+			    <img src="img/images/liebiao.png"/>
+		    </div>
+		    <div class="xinxi" style="cursor: pointer;" onClick="location.href='login.html';">
+			    <img src="img/images/xinxi.png"/>
+		    </div>
+            </div>
+
+		<div class="menu" data-title="配电系统" data-type="电量表" data-inner="相电压">配电系统</div>
+		<div class="menu" data-title="机房温湿度" data-type="温度计,湿度计" data-inner="温度">机房温湿度</div>
+		<div class="menu" data-title="门禁系统" data-type="门" data-inner="运行状态">门禁系统</div>
+		<div class="menu" data-title="烟雾报警" data-type="烟雾传感器" data-inner="烟雾报警">烟雾报警</div>
+		<div class="menu" data-title="漏水检测" data-type="水浸传感器" data-inner="水浸检测">漏水检测</div>
+
+
+		<div class="template" data-title="second" style="display: none;">传感器</div>
+	</div>
+</body>
+</html>

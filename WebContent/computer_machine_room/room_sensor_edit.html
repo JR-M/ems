@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>机房平面图</title>
+<link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="stylesheet" href="css/page.css" type="text/css" />
+<link rel="stylesheet" href="../login/css/box.css" type="text/css" />
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript">
+	var isNotEdit = true;
+
+	//当前传感器
+	var currentSensor;
+	function stc(t) {
+		if (t == 'enable') {
+			isNotEdit = false;
+		} else if (t == 'disable') {
+			isNotEdit = true;
+		}
+		$('body > .div-mask').resizable(t).draggable(t);
+		$('body > .div-mask > .div-sensor').draggable(t);
+
+		$('body > .div-mask').attr("class", "div-mask").find(".ui-resizable-handle").remove();
+		$('body > .div-mask > .div-sensor').attr("class", "div-sensor");
+	}
+
+	$(document).ready(function() {
+
+		$.get("../machineRoom/sensorList", function(d) {
+			$("body > .div-mask").remove();
+			$(d).each(function(i, o) {
+				contents = $.parseJSON(o.contents);
+				if (o.type == "区域")
+					$(contents).each(function(j, k) {
+						$('<div id="'+k.id+'" class="div-mask" style="'+k.style+'" title="区域"/>').appendTo("body");
+					});
+				else {
+					$('<div id="'+o.id+'" class="div-sensor" style="' + contents.style + '" title="' + contents.type + '" parentId="' + contents.parentId + '" />').css({
+						opacity : 1
+					}).data("contents", contents).appendTo("body");
+				}
+			});
+			initTools();
+		});
+
+		function initTools(o) {
+			$(".div-tools > div").remove();
+			$("div.div-sensor-template > *").clone().prependTo(".div-tools");
+			$(".div-tools").find(".div-sensor").css({
+				opacity : 0.4
+			});
+
+			$(".div-sensor,.div-mask").draggable({
+				containment : "body",
+				scroll : false,
+				stop : submitSensor
+			});
+
+			$(".div-sensor:not(body > .div-tools > *)").unbind("dblclick").dblclick(function(h) {
+				currentSensor = this;
+				d = $("div.outbg").show();
+				d.find("tr:gt(1)").show();
+				if (this.title.indexOf("摄像头") > -1) {
+					d.find("tr:has(input[name^='m']), tr:has(input[name='rsp']), tr:has(input[name='req'])").hide();
+				} else if (this.title.indexOf("门") > -1 || this.title.indexOf("警灯") > -1) {
+					d.find("tr:has(input[name^='m']), tr:has(input[name='username']), tr:has(input[name='password'])").hide();
+				} else {
+					d.find("tr:has(input[name='username']), tr:has(input[name='password'])").hide();
+				}
+
+				d.find("em.em-msg").text("");
+
+				$("div.b-wbox").css({
+					left : ($("div.outbg").width() - $('div.b-wbox').outerWidth() + 240) / 2,
+					top : ($("div.outbg").height() - $('div.b-wbox').outerHeight() + 290) / 2 + $(document).scrollTop()
+				});
+
+				if (!!this.id) {
+					$("div.div-input").parent().find("[name]").val("").end().find("> div:gt(1) a").click();
+					
+					da = $(this).data("contents");
+					$.each(da, function(i, o) {
+						$(".span-input [name=" + i + "], .div-input [name=" + i + "]").val(o)
+					});
+
+					$(da.coms).each(function(i, o) {
+						if (i > 0)
+							$("div.div-input").parent().find("> div:eq(1) a").click();
+					});
+					$(da.coms).each(function(i, o) {
+						$.each(o, function(comName, b) {
+							t = $("div.div-input").parent().find("> div:eq("+(i/1+1)+")");
+							t.find("[name=comName]").val(comName);
+							$.each(b,function(x,y){
+								t.find("[name="+x+"]").val(y);
+							});
+						})
+					});
+					
+					
+
+				} else
+					d.find('[name]').val('');
+			});
+
+			$("body > .div-mask").resizable({
+				stop : submitSensor
+			}).droppable({
+				accept : '.div-sensor',
+				drop : function(event, ui) {
+					ui.draggable.attr("parentId", this.id);
+				},
+				out : function(event, ui) {
+					ui.draggable.removeAttr("parentId");
+				}
+			});
+
+			$(".div-tools").droppable({
+				accept : '.div-sensor,.div-mask:not(:has(".div-sensor"))',
+				drop : function(event, ui) {
+					//删除
+					if (!ui.draggable.attr("id") || ui.draggable.attr("title") == "区域")
+						ui.draggable.remove();
+					else {
+						ui.draggable.dblclick();
+						$("div.outbg [name=remark]").val("del");
+						$("em.em-msg").text("按确认删除");
+					}
+				},
+				out : function(event, ui) {
+					if (ui.draggable.hasClass("div-mask")) {
+						for (i = 0, id = 'mark_', d = 'abcdefghijklmnopqrstuvwxyz1234567890'; i < 10; i++)
+							id += d.charAt(Math.floor(Math.random() * d.length));
+						ui.draggable.attr("id", id);
+					}
+					ui.draggable.appendTo("body");
+					initTools();
+				}
+			});
+		}
+
+		$("div.b-wbox").draggable({
+			handle : ".b-wtitle",
+			containment : "body",
+			scroll : false
+		});
+		console.log("已经载入执行");
+	});
+
+	function submitSensor(event, ui, c) {
+		ui = ui.helper || ui.element;
+		if (c == "delete") {
+
+		} else {
+
+		}
+
+		if (ui.hasClass("div-mask")) {
+			p = [];
+			$("body > .div-mask").each(function(i, obj) {
+				p.push({
+					id : this.id,
+					style : $(this).attr("style")
+				});
+			});
+			$.get("../machineRoom/editSensor", {
+				name : "区域",
+				type : "区域",
+				contents : JSON.stringify(p),
+				remark : new Date()
+			}, function(d) {
+			});
+		}
+
+		//	console.log("区域类型: " + ui.hasClass("div-mask"));
+		//	console.log("调整大小开始,height:" + ui.height() + " width:" + ui.width() + " top:" + ui.offset().top + " left:" + ui.offset().left)
+
+	}
+
+	function submitE(o) {
+		flag = true;
+		$("em.em-msg").text("");
+		/*$("input:visible", o).each(function(i, o) {
+		 if (o.value.length == 0) {
+		 $("em.em-msg").text("输入不能为空");
+		 $(o).focus();
+		 flag = false;
+		 return flag;
+		 }
+		 }); */
+		if (location.protocol == "file:") {
+			$(o).delay(1000).slideUp(300, function() {
+				$(o.parentNode).hide(100, function() {
+					$(o).show();
+				});
+			});
+		}
+		p = {
+			coms : []
+		};
+
+		$.each($(".span-input [name], .div-input [name]", o).serializeArray(), function(i, obj) {
+			p[this.name] = (this.value || "");
+		});
+
+		$("div:has(>p>a)", o).each(function(j, di) {
+			n = {}, t = {};
+			$("[name]:not([name=comName])", di).each(function(k, din) {
+				t[din.name] = din.value;
+			})
+			n[!$("[name=comName]", di).val() ? "read" : $("[name=comName]", di).val()] = t;
+			p.coms.push(n);
+		});
+		if (flag) {
+			$.get("../machineRoom/editSensor", {
+				id : p.id,
+				name : p.name,
+				type : p.type,
+				contents : JSON.stringify(p),
+				remark : (p.remark || new Date())
+			}, function(d) {
+				$("em.em-msg").text("修改/添加成功");
+				$(currentSensor).data("contents", p).attr("id", d.id).css({
+					opacity : 1
+				});
+				$("div.outbg").hide(1000);
+				if ("del" == p.remark)
+					$(currentSensor).remove();
+			});
+		}
+	}
+</script>
+<style type="text/css">
+.b-wcontent>div {
+	text-align: right;
+}
+
+.b-wcontent>div:nth-child(n+3) {
+	border-top: thin solid green;
+}
+
+.b-wcontent>div>p>a {
+	color: gray;
+}
+
+.b-wcontent>div>p>a:HOVER {
+	color: red;
+}
+
+.b-wcontent>div>p {
+	border: solid thin groove;
+	padding: 2px;
+}
+
+.b-wcontent>div input[type=text] {
+	height: 15px;
+	width: 77%;
+}
+
+.b-wcontent>div input[type=text]::-webkit-input-placeholder {
+	font: normal normal 12px sans-serif;
+}
+
+.b-wcontent>div input[type=text]::-moz-placeholder {
+	font: normal normal 12px sans-serif;
+}
+</style>
+</head>
+<body>
+	<span id="debug" style="position: absolute;"></span>
+	<img alt="" src="img/crm.jpg" width="100%" />
+
+	<div class="div-sensor-template" style="display: none;">
+		<div class="div-mask" style="width: 30px; height: 30px; position: absolute" title="区域"></div>
+		<div class="div-sensor" style="position: absolute;" title="温度计"></div>
+		<div class="div-sensor" style="position: absolute;" title="湿度计"></div>
+		<div class="div-sensor" style="position: absolute;" title="水浸传感器"></div>
+		<div class="div-sensor" style="position: absolute;" title="烟雾传感器"></div>
+		<div class="div-sensor" style="position: absolute;" title="摄像头"></div>
+		<div class="div-sensor" style="position: absolute;" title="门"></div>
+		<div class="div-sensor" style="position: absolute;" title="警灯"></div>
+		<div class="div-sensor" style="position: absolute;" title="电量表"></div>
+
+	</div>
+	<div class="div-tools">
+		<p style="position: absolute; bottom: 5%;">
+			<input name="control-mask" type="radio" onClick="stc('enable')">Y
+		</p>
+		<P style="position: absolute; bottom: 0;">
+			<input name="control-mask" type="radio" onclick="stc('disable')">N
+		</P>
+	</div>
+
+	<div class="outbg" style="display: none;">
+		<div class="overlayCSS"></div>
+		<div class="b-wbox" style="height: 330px; overflow-y: scroll;">
+			<div class="b-wtitle">
+				<div class="b-wtitle-txt">
+					<span>设置传感器参数</span> <a href="javascript:void(0);" class="b-wclose" onclick="$('.outbg').hide();">X</a>
+				</div>
+			</div>
+			<div class="b-wcontent">
+				<span class="span-input" style="display: none;"> <input name="id" /> <input name="type" /> <input name="style" /> <input name="parentId" /><input name="remark" />
+				</span>
+				<div class="div-input">
+					<p>
+						<span>设备名称</span>:<input name="name" type="text" />
+					</p>
+					<p>
+						<span>信号源IP</span>:<input name="ip" type="text" />
+					</p>
+					<p>
+						<span>端口</span>:<input name="port" type="text" />
+					</p>
+				</div>
+				<div>
+					<p>
+						<a onclick="d=this.parentNode.parentNode;if(this.innerHTML=='+'){$(d).before($(d).clone()).find(':text').val('');this.innerHTML='x';}else $(d).remove();"
+							style="cursor: pointer; font: bolder normal 2em/1em sans-serif;">+</a>
+					</p>
+					<p>
+						<span>命令名称</span>:<input name="comName" type="text" placeholder="可用中文" />
+					</p>
+					<p>
+						<span>数值范围</span>:<input name="range" type="text" placeholder="比较方式 报警值 报警类型,比较方式 报警值 报警类型|null" />
+					</p>
+					<p>
+						<span>请求串</span>:<input name="ask" type="text" placeholder="请求串1,请求串2,...请求串n|用户名,密码" oncontextmenu="return false;" onmousedown="this.onmouseup=function(e){s=this.value;if(e.button == 2){if(s.indexOf('!')<0)this.value=s.replace(/\s*(\w\w)\s*/g,function(c){return String.fromCharCode('0x'+c);});else this.value=s.replace(/\s*([\w|!])\s*/g,function(c){return c.charCodeAt(0).toString(16)+' ';});}}" />
+					</p>
+					<p>
+						<span>解码</span>:<input name="feedback" type="text" placeholder="返回码开始位置 解码类型 数据类型,返回码开始位置 解码类型 数据类型|..|null" />
+					</p>
+				</div>
+			</div>
+			<div class="b-wfoot">
+				<div class="fr">
+					<button class="btn_s sure mr10" onclick="submitE(this.parentNode.parentNode.parentNode);">保存</button>
+					<button class="btn_s remove" onclick="$('.outbg .b-wclose').click();">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
+

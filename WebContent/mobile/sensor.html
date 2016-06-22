@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>气温</title>
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: "微软雅黑";
+}
+
+#box {
+	height: 1920px;
+	width: 1080px;
+	background-image: url(img/images/beijingtu.jpg);
+	background-repeat: no-repeat;
+	background-position: center top;
+	position: relative;
+}
+.daohang {
+	height: 210px;
+	border-bottom: 1px #FFF solid;
+}
+.qiwen {
+	color: #FFF;
+	font-size: 60px;
+	text-align:center;
+	padding-top:80px;
+}
+
+.fanhui {
+	margin-left: 80px;
+	margin-top: -70px;
+}
+
+
+.bubble {
+	width: 400px;
+	height: 400px;
+	margin: 10px;
+	float: left;
+	background-color: #1c2b31;
+	text-align: center;
+	border-radius: 200px;
+	-webkit-border-radius: 200px;
+}
+
+.title {
+	color: #fff;
+	font: normal normal 4em/4em Arial, "微软雅黑", Helvetica, sans-serif;
+}
+
+.contents {
+	color: #fff;
+	font: normal normal 4em/0em Arial, "微软雅黑", Helvetica, sans-serif;
+}
+</style>
+<script type="text/javascript" src="../login/js/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+	t = -1;
+	unit = "温度:℃,湿度:%,电压:V,电流:A,频率:Hz,功率:Kw/h";
+	function show(s) {
+		if (t != -1)
+			clearInterval(t);
+		t = setInterval(function() {
+			hour = new Date().getHours()+"";
+			min = new Date().getMinutes()+"";
+			$(".bubble:first>.contents").html((hour.length<2?"0"+hour:hour) + ":" + (min.length<2?"0"+min:min));
+			$.get("../machineRoom/recordList", {
+				n : 1,
+				s : s.contents.split(",").length,
+				sensorId : s.id
+			}, function(d) {
+				if (d.list.length == 0) return false;
+				for(i in d.list){
+					$(".bubble>.title:contains('" + d.list[i].remark + "')").next().next().html(d.list[i].number.toFixed(2) + unit.replace(eval("/.*"+d.list[i].remark.substr(-2,2)+":([^\,]+).*/g"),'$1').replace(/.*,.*/g,''));
+				}
+				if (d.list[0].remark.indexOf("门")!=-1 ) {
+					door = $(".title:contains("+d.list[0].remark+")").html(d.list[0].remark).parent().find(".contents");
+					door.html(d.list[0].number==0?"关":"开");
+					$(".bubble:contains(门)").click(function(){
+						$.get("../machineRoom/sendOrder", {
+							id : s.id,
+							comName : s.contents.split("|")[1]
+						});
+					});
+				}
+			});
+		}, 1500);
+	}
+
+	$(function() {		
+		$.get("../machineRoom/getUser", function(d) {
+			if (!d.user) {
+				location.href = "login.html";
+			}
+		});
+		s = $.parseJSON('{' + decodeURI(location.search.replace(/^\?/, '')).replace(/([^\&]+)\=([^\&]*)(\&|$)/gi, '"$1":"$2"$3').replace(/\&/g, ',') + '}');
+		$(".qiwen").html(s.name);
+		$(s.contents.split("|")[0].split(",")).each(function(i, o) {
+			$(".bubble:first").clone().find(".title").html(o).end().insertAfter(".bubble:last");
+		});
+		show(s);
+
+		$(".fanhui>img").click(function() {
+			history.back(-1);
+		});
+	});
+</script>
+
+</head>
+
+<body>
+	<div id="box">
+        <div class="daohang">
+		    <div class="qiwen">传感器</div>
+		    <div class="fanhui">
+			    <img src="img/images/fanhui.png"/>
+		    </div>
+        </div>
+		<div class="bubble">
+			<span class="title">时间</span><br />
+			<span class="contents">--:--</span>
+		</div>
+	</div>
+</body>
+</html>

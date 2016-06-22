@@ -1,0 +1,44 @@
+@font-face {
+	font-family: "wether";
+	src: url("../font/wether.eot");
+	src: url("../font/wether.eot#iefix") format("embedded-opentype"),
+	url("../font/wether.woff") format("woff"),
+	url("../font/wether.ttf") format("truetype"),
+	url("../font/wether.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+[class^="wt-"]:before, [class*=" wt-"]:before,
+[class^="wt-"]:after, [class*=" wt-"]:after {   
+	font-family: wether;
+	font-size: 20px;
+	font-style: normal;
+	margin-left: 20px;
+}
+.wt-dark:before {
+	content: "\e800"
+}
+.wt-snowflake:before {
+	content: "\e801"
+}
+.wt-rain:before {
+	content: "\e802"
+}
+.wt-clouds:before {
+	content: "\e803"
+}
+.wt-weather:before {
+	content: "\e804"
+}
+.wt-rain-1:before {
+	content: "\e805"
+}
+.wt-cloud:before {
+	content: "\e806"
+}
+.wt-lightning:before {
+	content: "\e807"
+}
+.wt-cloudy:before {
+	content: "\e808"
+}

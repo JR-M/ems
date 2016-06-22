@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<title>温度数据</title>
+<link rel="stylesheet" href="css/page.css" type="text/css" />
+<style type="text/css">
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="js/highcharts.js"></script>
+<script type="text/javascript" src="js/highcharts-3d.js"></script>
+<script type="text/javascript" src="js/highchartTheme.js"></script>
+</head>
+<body>
+	<div id="t" class="div"
+		style="width: 600px; height: 310px; margin-left: 50px; margin-top: 10px;"></div>
+	<div id="h" class="div"
+		style="width: 600px; height: 310px; margin-left: 50px; margin-top: 10px;"></div>
+	<div id="f" class="div"
+		style="width: 600px; height: 310px; margin-left: 50px; margin-top: 10px;"></div>
+	<div id="w" class="div"
+		style="width: 600px; height: 310px; margin-left: 50px; margin-top: 10px;"></div>
+</body>
+<script type="text/javascript">
+	$(function() {
+		setting = {
+			chart : {
+				type : 'pie',
+				options3d : {
+					enabled : true,
+					alpha : 45,
+					beta : 0
+				}
+			},
+			title : {
+				text : 'Browser market shares at a specific website, 2014'
+			},
+			credits : {
+				enabled : false
+			},
+			tooltip : {
+				pointFormat : '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			plotOptions : {
+				pie : {
+					allowPointSelect : true,
+					cursor : 'pointer',
+					depth : 35,
+					dataLabels : {
+						enabled : true,
+						format : '{point.name}'
+					}
+				}
+			},
+			series : [ {
+				type : 'pie',
+				name : 'Browser share',
+				data : [ [ 'Firefox', 45.0 ], [ 'IE', 26.8 ], {
+					name : 'Chrome',
+					y : 12.8,
+					sliced : true,
+					selected : true
+				}, [ 'Safari', 8.5 ], [ 'Opera', 6.2 ], [ 'Others', 0.7 ] ]
+			} ]
+		};
+
+		//从网络获取到的数据
+		$.getJSON('/icp/machineRoom/getCircleData').done(function(data) {
+		}).fail(function() {
+			console.error('获取数据失败');
+		});
+		//获取到的数据
+		var tArray = [ {
+			name : '-30-0',
+			y : 12.8
+		}, {
+			name : '0-10',
+			y : 42.2
+		}, {
+			name : '10-20',
+			y : 22.8
+		}, {
+			name : '20-40',
+			y : 20.2
+		}, {
+			name : '>40',
+			y : 2.0
+		} ];
+
+		var hArray = [ {
+			name : '0-30%',
+			y : 12.8
+		}, {
+			name : '30%-45%',
+			y : 42.2
+		}, {
+			name : '45%-75%',
+			y : 22.8
+		}, {
+			name : '75%-100%',
+			y : 22.2
+		} ];
+
+		var fArray = [ {
+			name : '正常',
+			y : 68.2
+		}, {
+			name : '异常',
+			y : 31.8
+		} ];
+		var wArray = [ {
+			name : '正常',
+			y : 38.2
+		}, {
+			name : '异常',
+			y : 62.8
+		} ];
+		$("#t").highcharts(setting);
+		Highcharts.setOptions(tTheme);
+		t = $("#t").highcharts();
+		t.setTitle({
+			text : '温度异常统计'
+		});
+		t.series[0].setData(tArray);
+		t.series[0].name = '温度';
+		$("#h").highcharts(setting);
+		Highcharts.setOptions(hTheme);
+		h = $("#h").highcharts();
+		h.setTitle({
+			text : '湿度异常统计'
+		});
+		h.series[0].setData(hArray);
+		h.series[0].name = '湿度';
+		$("#f").highcharts(setting);
+		Highcharts.setOptions(fTheme);
+		f = $("#f").highcharts();
+		f.setTitle({
+			text : '水浸状态统计'
+		});
+		f.series[0].setData(fArray);
+		f.series[0].name = '水浸';
+		$("#w").highcharts(setting);
+		Highcharts.setOptions(wTheme);
+		w = $("#w").highcharts();
+		w.setTitle({
+			text : '烟感状态统计'
+		});
+		w.series[0].setData(wArray);
+		w.series[0].name = '烟感';
+	});
+</script>
+</html>

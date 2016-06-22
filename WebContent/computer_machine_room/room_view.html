@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>机房平面图</title>
+<link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="stylesheet" href="css/page.css" type="text/css" />
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/raindrops.js"></script>
+<script type="text/javascript" src="js/jquery.bloodforge.smoke-effect.1-0.min.js"></script>
+<script type="text/javascript">
+	var isNotEdit = true;
+	var theInterval;
+	
+	var ids = "";
+	function stc(t) {
+		if (t == 'enable') {
+			isNotEdit = false;
+		} else if (t == 'disable') {
+			isNotEdit = true;
+		}
+		$('.div-mask').resizable(t).draggable(t);
+		$('.div-tools').droppable(t);
+		$('body > .div-sensor,.div-tools > .div-sensor').draggable(t);
+
+		$('body > .div-sensor.sensor').hover(function(e) {
+			
+			if ($(this).attr("title") == '摄像头') {
+				info = $(this).attr("data-info");
+				$("#if").attr("src", 'camera/cn/demo.html?' + info);
+			} else {
+				$("#if").attr("src", 'highcharts.html');
+			}
+			
+			
+			if (isNotEdit) {
+				var sensorId = $(this).attr("name")
+				$('.div-template').show().css({
+					left : e.clientX,
+					top : e.clientY
+				});
+
+				var childIfr = document.getElementById("if").contentWindow;
+			//	childIfr.p.yAxis[0].setCategories([ 30, 40, 50, 60, 70 ]);
+				childIfr.p.yAxis[0].setTitle({
+					text : $(this).attr("title")
+				});
+				
+				/* $.getJSON("/icp/upt/getListData",{id : sensorId},function(data){
+					for(var i=0;i<data.length;i++){
+						ti = new Date(data[i].samplingTime);
+						ri = parseFloat(data[i].value).toFixed(2);
+						childIfr.p.series[i*1].addPoint([ ti.getTime(), ri * 1 ], true, true);
+					}
+				}); */
+				
+				theInterval = setInterval(function() {
+					$.getJSON("/icp/upt/getSingleData",{ids : sensorId},function(data){
+						console.log(data.length);
+						if(data.length > 0){
+							t1 = new Date(data[0].samplingTime);
+							r1 = parseFloat(data[0].value).toFixed(2);
+							childIfr.p.series[0].addPoint([ t1.getTime(), r1 * 1 ], true, true); 
+						}
+					});
+					/*  t1 = (new Date()).getTime(), // current time 
+					 r1 = parseInt(Math.random() * 1000);
+					 childIfr.p.series[0].addPoint([ t1, (20 + r1 % 400 / 100).toFixed(2) * 1 ], true, true);  */
+				}, 2000);
+			}
+		}, function(e) {
+			$('.div-template').hide();
+			clearInterval(theInterval);
+		});
+
+	}
+
+	$(document).ready(function() {
+		$(".div-mask").resizable().draggable({
+			containment : "body",
+			scroll : false
+		}).mouseup(function() {
+			tArray = [];
+			$(".div-mask").each(function(i, o) {
+				a = {};
+				a.top = Math.round($(o).offset().top / $(window).height() * 100) + "%";
+				a.left = Math.round($(o).offset().left / $(window).width() * 100) + "%";
+				a.width = Math.round($(o).width() / $(window).width() * 100) + "%";
+				a.height = Math.round($(o).height() / $(window).height() * 100) + "%";
+				a.position = "absolute";
+				tArray.push(a);
+			});
+			//$("#debug").html(JSON.stringify(tArray).replace(/\"/g, "").replace(/\,/g, ";"));
+		});
+
+		$(".div-control").draggable().find(":contains('加温')").click(function() {
+			t = $(".div-mask:eq(1)");
+			ts = (t.css("background-color") == "rgb(0, 249, 0)") ? "red" : "rgb(0, 249, 0)";
+			t.stop().animate({
+				backgroundColor : ts
+			}, 700, arguments.callee);
+		}).end().find(":contains('降温')").click(function() {
+			t = $(".div-mask:eq(1)");
+			ts = (t.css("background-color") == "rgb(0, 249, 0)") ? "blue" : "rgb(0, 249, 0)";
+			t.stop().animate({
+				backgroundColor : ts
+			}, 700, arguments.callee);
+		}).end().find(":contains('水浸')").click(function() {
+			t = $(".div-mask:eq(4)");
+			t.stop().css("background-color", "rgb(0, 249, 0)").find(":not('.ui-resizable-handle')").remove();
+			$("<div><p>&nbsp</p></div>").css({
+				"height" : "100%"
+			}).appendTo(t).raindrops({
+				color : 'blue',
+				canvasHeight : 300,
+				rippleSpeed : 0.01,
+				frequency : 1,
+				density : 0
+			});
+		}).end().find(":contains('加湿')").click(function() {
+			t = $(".div-mask:eq(2)");
+			t.stop().css("background-color", "rgb(0, 249, 0)").find(":not('.ui-resizable-handle')").remove();
+			$("<div><p>&nbsp</p></div>").css({
+				"height" : "100%"
+			}).appendTo(t).raindrops({
+				color : 'blue',
+				canvasHeight : 50,
+				rippleSpeed : 0.01,
+				frequency : 1,
+				density : 0
+			});
+		}).end().find(":contains('干燥')").click(function() {
+			t = $(".div-mask:eq(2)");
+			t.find("*").remove();
+			ts = (t.css("background-color") == "rgb(0, 249, 0)") ? "#FF9966" : "rgb(0, 249, 0)";
+			t.stop().animate({
+				backgroundColor : ts
+			}, 700, arguments.callee);
+		}).end().find(":contains('烟雾')").click(function() {
+			t = $(".div-mask:eq(6)");
+			t.find(":not('.ui-resizable-handle')").remove();
+			$("<div class='div-mask'></div>").css({
+				"height" : "100%"
+			}).appendTo(t).SmokeEffect({
+				backgroundColor : 'black',
+				density : 12,
+				maximumVelocity : 7.5,
+				fps : 20,
+				forceBackgroundRender : true,
+				imageWidth : 100,
+				imageHeight : 150
+			});
+		});
+
+		$(".div-control").draggable().find(":contains('还原')").click(function() {
+			$(".div-mask").stop().css("background-color", "rgb(0, 249, 0)").find(":not('.ui-resizable-handle')").remove();
+		});
+
+		function initTools() {
+			$(".div-tools > .div-sensor-cloner").remove();
+			$("div.div-sensor-template > *").clone().addClass("div-sensor-cloner").css({
+				opacity : 0.7
+			}).draggable({
+				containment : "body",
+				scroll : false
+			}).prependTo(".div-tools");
+			$("body > .div-sensor").draggable({
+				containment : "body",
+				scroll : false
+			});
+		}
+
+		initTools();
+
+		$(".div-tools").droppable({
+			accept : '.div-sensor',
+			drop : function(event, ul) {
+				$(".div-sensor-cloner").remove();
+				initTools();
+			},
+			out : function(event, ul) {
+				$(".div-tools").after(ul.draggable.css({
+					opacity : 1
+				}).removeClass("div-sensor-cloner"));
+				initTools();
+			},
+			over : function(event, ul) {
+				ul.draggable.css({
+					opacity : 0.7
+				}).addClass("div-sensor-cloner");
+			}
+		});
+
+		$(":radio[data-name='control-mask']:last").click();
+
+		eval(decodeURI(location.search.replace(/.*(javascript:)(.*)/g, "$2")));
+
+		//	showSensorInfo();
+		console.log("已经执行")
+
+		$("div.div-sensor.sensor").each(function(i, e) {
+			ids += $(e).attr("name") + ",";
+		});
+		ids = ids.substring(0, ids.length - 1);
+
+/* 		readData();
+		setInterval("readData()", 2000); */
+		
+		/* $("#wetter").click();
+		setTimeout(function(){
+			$(".div-mask:eq(2)").stop().css("background-color", "rgb(0, 249, 0)").find(":not('.ui-resizable-handle')").remove();
+		},30000); */
+		/* $("#hotter").click();
+		$("#leach").click();
+		$("#smoke").click(); */
+	});
+
+	function showSensorInfo() {
+		var childIfr = document.getElementById("if").contentWindow;
+		//	var ifr = $("div.div-template");
+		$("div.div-sensor.sensor").click(function() {
+			if (isNotEdit) {
+				//	ifr.css("left", (parseFloat($(this).css("left")) + 30) + "px").css("top", $(this).css("top")).show();
+				childIfr.p.yAxis[0].setCategories([ 30, 40, 50, 60, 70 ]);
+				childIfr.p.yAxis[0].setTitle({
+					text : $(this).attr("title")
+				});
+			}
+		}).dblclick(function() {
+			if ($("div.iframe-template").is(":visible")) {
+				$("div.iframe-template").hide();
+			}
+		});
+
+	}
+
+	function readData() {
+		$.getJSON("/icp/upt/getSingleData", {
+			ids : ids
+		}, function(data) {
+			$.each(data, function(i, e) {
+				console.log(JSON.stringify(e));
+				value = e.value;
+				warnMin = parseFloat(e.equipment.warningMin);
+				warnMax = parseFloat(e.equipment.warningMax);
+				equipId = e.equipId;
+				$("span#" + e.equipId).text(parseFloat(e.value).toFixed(1));
+				if(value >= warnMax){
+					//超出警戒最大值
+					switch(equipId){
+					case 3:
+						$("#hotter").click();
+						clearAnimation(1);
+						break;
+					case 4:
+						$("#wetter").click();
+						clearAnimation(2);
+						break;
+					}
+					
+				} else if(value < warnMin){
+					//超出警戒最小值
+					switch(equipType){
+					case 3:
+						$("#cooler").click();
+						clearAnimation(1);
+						break;
+					case 4:
+						$("#dryer").click();
+						clearAnimation(2);
+						break;
+					}
+				}
+			});
+		});
+	}
+	
+	function clearAnimation(target){
+		return false;
+		setTimeout(function(){
+			$(".div-mask:eq("+target+")").stop().css("background-color", "rgb(0, 249, 0)").find(":not('.ui-resizable-handle')").remove();
+		},30000);
+	}
+</script>
+</head>
+<body>
+	<span id="debug" style="position: absolute;"></span>
+	<img alt="" src="img/crm.jpg" width="100%" />
+	<div class="div-mask" style="top: 18%; left: 22%; width: 11%; height: 17%; position: absolute">
+		<div class="div-sensor sensor" style="position: absolute; top: 18%; left: 22%;" title="烟雾传感器" data-name="1"></div>
+	</div>
+	<div class="div-mask" style="top: 18%; left: 35%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 18%; left: 49%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 18%; left: 63%; width: 11%; height: 17%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 20%; width: 12%; height: 28%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 34%; width: 13%; height: 37%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 48%; width: 13%; height: 37%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 64%; width: 9%; height: 28%; position: absolute"></div>
+	<div class="div-mask" style="top: 48%; left: 78%; width: 12%; height: 28%; position: absolute"></div>
+	<div class="div-control" style="display: anone">
+		<button id="hotter">加温</button>
+		<button id="cooler">降温</button>
+		<hr />
+		<button id="wetter">加湿</button>
+		<button id="dryer">干燥</button>
+		<hr />
+		<button id="leach">水浸</button>
+		<hr />
+		<button id="smoke">烟雾</button>
+		<hr />
+		<button id="restore">还原</button>
+
+	</div>
+
+	<div class="div-sensor-template" style="display: none;">
+		<div class="div-sensor" style="position: absolute;" title="温度计"></div>
+		<div class="div-sensor" style="position: absolute;" title="湿度计"></div>
+		<div class="div-sensor" style="position: absolute;" title="水浸传感器"></div>
+		<div class="div-sensor" style="position: absolute;" title="烟雾传感器"></div>
+		<div class="div-sensor" style="position: absolute;" title="摄像头"></div>
+
+	</div>
+	<div class="div-tools" style="display: none;">
+		<span style="position: absolute; bottom: 0; left: 0;"> <input data-name="control-mask" type="radio" onClick="stc('enable')">Y <input data-name="control-mask" type="radio"
+			onclick="stc('disable')">N
+		</span>
+	</div>
+	<div class="div-sensor sensor" style="position: absolute; top: 18%; left: 22%;" title="烟雾传感器" data-name="1"></div>
+	<div class="div-sensor sensor" style="position: absolute; top: 18%; left: 35%;" title="温度计" data-name="3"></div>
+	<span style="position: absolute; top: 18%; left: 38%; font-weight: bold; color: red;" id="3"></span>
+	<div class="div-sensor sensor" style="position: absolute; top: 18%; left: 49%;" title="湿度计" data-name="4"></div>
+	<span style="position: absolute; top: 18%; left: 52%; font-weight: bold; color: red;" id="4"></span>
+	<div class="div-sensor sensor" style="position: absolute; top: 18%; left: 63%;" title="温度计" data-name="6"></div>
+	<span style="position: absolute; top: 18%; left: 66%; font-weight: bold; color: red;" id="6"></span>
+	<div class="div-sensor sensor" style="position: absolute; top: 48%; left: 20%;" data-info='{"ip":"192.168.1.77","port":80,"username":"admin","password":"a1234567"}' title="摄像头" data-name="5"></div>
+	<div class="div-sensor sensor" style="position: absolute; top: 48%; left: 34%;" title="水浸传感器" data-name="2"></div>
+	<div class="div-sensor sensor" style="position: absolute; top: 48%; left: 48%;" title="烟雾传感器" data-name="7"></div>
+	<div class="div-sensor sensor" style="position: absolute; top: 48%; left: 64%;" title="湿度计" data-name="8"></div>
+	<div class="div-sensor sensor" style="position: absolute; top: 48%; left: 78%;" title="温度计" data-name="9"></div>
+
+	<!-- 	<div class="iframe-template" style="position: absolute;z-index:1000;display: none;">
+		<iframe id="if" style="width: 100%;height: 100%;" src="highcharts.html" frameborder="no" border="0" scrolling="no"></iframe>
+	</div> -->
+
+	<div class="div-template">
+		<iframe id="if" width="100%" height="100%" style="border: 0;"  src="highcharts.html"></iframe>
+	</div>
+</body>
+</html>
+

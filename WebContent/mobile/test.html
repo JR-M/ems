@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta HTTP-EQUIV="pragma" CONTENT="no-cache">
+<meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+<meta HTTP-EQUIV="expires" CONTENT="0">
+<title>JS打造多彩变色泡泡(防屏幕保护效果)_网页代码站(www.webdm.cn)</title>
+<style type="text/css">
+html, body {
+	border: none;
+	overflow: hidden;
+	height: 100%;
+}
+
+body {
+	background: #dcb5ff;
+}
+</style>
+<script type="text/javascript" src="..\login\js\jquery-1.10.2.js"></script>
+<script type="text/javascript" src="../computer_machine_room/js/jquery-ui.js"></script>
+<script type="text/javascript">
+	arrBubs = [];
+	iBottom = 0;
+	iRight = 0;
+
+	$(function() {
+
+		(function() {
+			$($(".bubble")).each(function(i, o) {
+				obj = new Bubble(o);
+				obj.setSpeed(5, 5);
+				arrBubs.push(obj);
+
+			});
+			step = 0;
+			handleResize();
+			setInterval(function() {
+				for (var i = 0, n = arrBubs.length; i < n; i++) {
+					arrBubs[i].update();
+				}
+				if (step++ % 50 == 0) {
+					for (var i = 0, n = arrBubs.length; i < n; i++) {
+						$(arrBubs[i].obj).stop().animate({
+							backgroundColor : "rgb(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ")"
+						}, 700);
+					}
+				}
+			}, 20);
+		}());
+	});
+
+	function handleResize() {
+		iRight = document.documentElement.clientWidth;
+		iBottom = document.documentElement.clientHeight;
+	}
+
+	function Bubble(obj) {
+		this.obj = obj;
+		var x = 0, y = 0;
+		var r = 0;
+		var vx = 0, vy = 0;
+		var styBox = "";
+
+		function Init() {
+			styBox = obj.style;
+			styBox.position = "absolute";
+			r = parseInt(styBox.width.replace("px", "")) / 2;
+			x = parseInt(styBox.left.replace("px", ""));
+			y = parseInt(styBox.top.replace("px", ""));
+		}
+
+		function getPos() {
+			return {
+				x : x,
+				y : y
+			};
+		}
+
+		function getRadiu() {
+			return r;
+		}
+
+		function getSpeed() {
+			return {
+				vx : vx,
+				vy : vy
+			};
+		}
+
+		function setSpeed(_vx, _vy) {
+			vx = _vx;
+			vy = _vy;
+		}
+
+		function update() {
+			x += vx;
+			y += vy;
+
+			if (x >= iRight - 2 * r || x <= 0) {
+				vx = -vx;
+				x = x <= 0 ? 0 : iRight - 2 * r;
+			}
+
+			if (y >= iBottom - 2 * r || y <= 0) {
+				vy = -vy;
+				y = y <= 0 ? 0 : iBottom - 2 * r;
+			}
+
+			for (var i = 0; i < arrBubs.length; i++) {
+				bub = arrBubs[i];
+				if (bub == this)
+					continue;
+				p = bub.getPos();
+				d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y);
+				D = (r + bub.getRadiu()) * (r + bub.getRadiu());
+
+				if (d <= D) {
+					vx = -vx;
+					vy = -vy;
+					bub.setSpeed(-bub.getSpeed().vx, -bub.getSpeed().vy);
+				}
+			}
+			styBox.left = Math.round(x) + "px";
+			styBox.top = Math.round(y) + "px";
+		}
+
+		this.update = update;
+		this.getSpeed = getSpeed;
+		this.setSpeed = setSpeed;
+		this.getPos = getPos;
+		this.getRadiu = getRadiu;
+
+		Init();
+	}
+</script>
+</head>
+<body>
+	<div class="bubble" style="width: 100px; height: 100px; border-radius: 50px; position: absolute; top: 20px; left: 20px;"></div>
+	<div class="bubble" style="width: 100px; height: 100px; border-radius: 50px; position: absolute; top: 80px; left: 180px;"></div>
+	<div class="bubble" style="width: 100px; height: 100px; border-radius: 50px; position: absolute; top: 240px; left: 200px;"></div>
+	<div class="bubble" style="width: 100px; height: 100px; border-radius: 50px; position: absolute; top: 360px; left: 500px;"></div>
+</body>
+</html>
